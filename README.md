@@ -1,6 +1,6 @@
-# Vamba
+# BIMBA
 
-This repo contains code for [Vamba](https://arxiv.org/abs/TODO), a hybrid Mamba-Transformer model that leverages cross-attention layers and Mamba-2 blocks for efficient hour-long video understanding.
+This repo contains code for [BIMBA](https://arxiv.org/abs/TODO), a hybrid Mamba-Transformer model that leverages cross-attention layers and Mamba-2 blocks for efficient hour-long video understanding.
 
 [**🌐 Homepage**](https://sites.google.com/view/bimba-mllm) | [**📖 arXiv**](https://arxiv.org/abs/2503.09590) | [**💻 GitHub**]() | [**🤗 Model**](BIMBA-LLaVA-NeXT/checkpoints/BIMBA-LLaVA-Qwen2-7B)
 
@@ -14,7 +14,7 @@ pip install -r requirements.txt
 This codebase is built on [LLaVA-NeXT](https://github.com/LLaVA-VL/LLaVA-NeXT) and [mamba](https://github.com/state-spaces/mamba) codebases.
 ## Model Inference
 ```python
-# git clone https://github.com/TIGER-AI-Lab/Vamba
+# git clone https://github.com/md-mohaiminul/BIMBA.git
 # cd BIMBA-LLaVA-NeXT
 from llava.model.builder import load_pretrained_model
 from llava.mm_utils import get_model_name_from_path, process_images, tokenizer_image_token
