@@ -1,8 +1,8 @@
 # BIMBA
 
-This repo contains code for [BIMBA](https://arxiv.org/abs/TODO), a hybrid Mamba-Transformer model that leverages cross-attention layers and Mamba-2 blocks for efficient hour-long video understanding.
+[**🌐 Homepage**](https://sites.google.com/view/bimba-mllm) | [**📖 arXiv**](https://arxiv.org/abs/2402.13250) | [**💻 GitHub**]() | [**🤗 Model**](BIMBA-LLaVA-NeXT/checkpoints/BIMBA-LLaVA-Qwen2-7B)
 
-[**🌐 Homepage**](https://sites.google.com/view/bimba-mllm) | [**📖 arXiv**](https://arxiv.org/abs/2503.09590) | [**💻 GitHub**]() | [**🤗 Model**](BIMBA-LLaVA-NeXT/checkpoints/BIMBA-LLaVA-Qwen2-7B)
+<!-- This repo contains code for [BIMBA](https://arxiv.org/abs/TODO), a hybrid Mamba-Transformer model that leverages cross-attention layers and Mamba-2 blocks for efficient hour-long video understanding. -->
 
 ## Install
 Please use the following commands to install the required packages:
