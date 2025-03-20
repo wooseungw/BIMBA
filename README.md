@@ -1,12 +1,18 @@
 # BIMBA
 
-[**🌐 Homepage**](https://sites.google.com/view/bimba-mllm) | [**📖 arXiv**](https://arxiv.org/abs/2402.13250) | [**💻 GitHub**]() | [**🤗 Model**](BIMBA-LLaVA-NeXT/checkpoints/BIMBA-LLaVA-Qwen2-7B)
+[BIMBA: Selective-Scan Compression for Long-Range Video Question Answering](https://arxiv.org/abs/2503.09590)\
+Md Mohaiminul Islam, Tushar Nagarajan, Huiyu Wang, Gedas Bertasius, and Lorenzo Torresani
 
-<!-- This repo contains code for [BIMBA](https://arxiv.org/abs/TODO), a hybrid Mamba-Transformer model that leverages cross-attention layers and Mamba-2 blocks for efficient hour-long video understanding. -->
+[**🌐 Homepage**](https://sites.google.com/view/bimba-mllm) | [**📖 arXiv**](https://arxiv.org/abs/2503.09590) | [**💻 GitHub**]() | [**🤗 Model**](BIMBA-LLaVA-NeXT/checkpoints/BIMBA-LLaVA-Qwen2-7B)
 
-## Install
+BIMBA is a multimodal large language model (MLLM) capable of efficiently processing long-range videos. Our model leverages the selective scan mechanism of [Mamba](https://arxiv.org/abs/2312.00752) to effectively select critical information from high-dimensional video and transform it into a reduced token sequence for efficient LLM processing. Extensive experiments demonstrate that BIMBA  achieves state-of-the-art accuracy on multiple long-form VQA benchmarks, including [PerceptionTest](https://arxiv.org/abs/2305.13786), [NExT-QA](https://arxiv.org/abs/2105.08276), [EgoSchema](https://arxiv.org/abs/2308.09126), [VNBench](https://arxiv.org/abs/2406.09367), [LongVideoBench](https://arxiv.org/abs/2407.15754), [Video-MME](https://arxiv.org/abs/2405.21075), and [MLVU](https://arxiv.org/abs/2406.04264). 
+
+<img src="BIMBA-LLaVA-NeXT/assets/model.png"> 
+
+## Installation
 Please use the following commands to install the required packages:
 ```bash
+cd BIMBA-LLaVA-NeXT
 conda create --name bimba python=3.10
 conda activate bimba
 pip install -r requirements.txt
