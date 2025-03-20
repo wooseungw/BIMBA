@@ -4,7 +4,8 @@
 Md Mohaiminul Islam, Tushar Nagarajan, Huiyu Wang, Gedas Bertasius, and Lorenzo Torresani\
 <span style="color:#DC143C; font-weight: bold;">Accepted by CVPR 2025</span>
 
-[**🌐 Homepage**](https://sites.google.com/view/bimba-mllm) | [**📖 arXiv**](https://arxiv.org/abs/2503.09590) | [**💻 GitHub**](https://github.com/md-mohaiminul/BIMBA) | [**🤗 Model**](https://huggingface.co/mmiemon/BIMBA-LLaVA-Qwen2-7B)
+[**🌐 Homepage**](https://sites.google.com/view/bimba-mllm) | [**📖 arXiv**](https://arxiv.org/abs/2503.09590) | [**💻 GitHub**](https://github.com/md-mohaiminul/BIMBA) | [**🤗 Model**](https://huggingface.co/mmiemon/BIMBA-LLaVA-Qwen2-7B) | [**🌟 Demo**](BIMBA-LLaVA-NeXT/demo_selective_scan_compression.ipynb)
+
 
 BIMBA is a multimodal large language model (MLLM) capable of efficiently processing long-range videos. Our model leverages the selective scan mechanism of [Mamba](https://arxiv.org/abs/2312.00752) to effectively select critical information from high-dimensional video and transform it into a reduced token sequence for efficient LLM processing. Extensive experiments demonstrate that BIMBA  achieves state-of-the-art accuracy on multiple long-form VQA benchmarks, including [PerceptionTest](https://arxiv.org/abs/2305.13786), [NExT-QA](https://arxiv.org/abs/2105.08276), [EgoSchema](https://arxiv.org/abs/2308.09126), [VNBench](https://arxiv.org/abs/2406.09367), [LongVideoBench](https://arxiv.org/abs/2407.15754), [Video-MME](https://arxiv.org/abs/2405.21075), and [MLVU](https://arxiv.org/abs/2406.04264). 
 
@@ -19,6 +20,9 @@ conda activate bimba
 pip install -r requirements.txt
 ```
 This codebase is built on [LLaVA-NeXT](https://github.com/LLaVA-VL/LLaVA-NeXT) and [mamba](https://github.com/state-spaces/mamba) codebases.
+
+## Demo Selective-Scan Compression
+We provide a [demo notebook](BIMBA-LLaVA-NeXT/demo_selective_scan_compression.ipynb) on how to use selective-scan/mamba-based token compression method for long-range videos introduced in our paper. Following this notebook, you can easily utilize this compression technique to reduce the input video tokens of your model.
 
 
 ## Download Model
