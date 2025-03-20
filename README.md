@@ -1,9 +1,10 @@
 # BIMBA
 
-[BIMBA: Selective-Scan Compression for Long-Range Video Question Answering](https://arxiv.org/abs/2503.09590)\
-Md Mohaiminul Islam, Tushar Nagarajan, Huiyu Wang, Gedas Bertasius, and Lorenzo Torresani
+[**BIMBA: Selective-Scan Compression for Long-Range Video Question Answering**](https://arxiv.org/abs/2503.09590)\
+Md Mohaiminul Islam, Tushar Nagarajan, Huiyu Wang, Gedas Bertasius, and Lorenzo Torresani\
+<span style="color:#DC143C; font-weight: bold;">Accepted by CVPR 2025</span>
 
-[**🌐 Homepage**](https://sites.google.com/view/bimba-mllm) | [**📖 arXiv**](https://arxiv.org/abs/2503.09590) | [**💻 GitHub**]() | [**🤗 Model**](BIMBA-LLaVA-NeXT/checkpoints/BIMBA-LLaVA-Qwen2-7B)
+[**🌐 Homepage**](https://sites.google.com/view/bimba-mllm) | [**📖 arXiv**](https://arxiv.org/abs/2503.09590) | [**💻 GitHub**](https://github.com/md-mohaiminul/BIMBA) | [**🤗 Model**](https://huggingface.co/mmiemon/BIMBA-LLaVA-Qwen2-7B)
 
 BIMBA is a multimodal large language model (MLLM) capable of efficiently processing long-range videos. Our model leverages the selective scan mechanism of [Mamba](https://arxiv.org/abs/2312.00752) to effectively select critical information from high-dimensional video and transform it into a reduced token sequence for efficient LLM processing. Extensive experiments demonstrate that BIMBA  achieves state-of-the-art accuracy on multiple long-form VQA benchmarks, including [PerceptionTest](https://arxiv.org/abs/2305.13786), [NExT-QA](https://arxiv.org/abs/2105.08276), [EgoSchema](https://arxiv.org/abs/2308.09126), [VNBench](https://arxiv.org/abs/2406.09367), [LongVideoBench](https://arxiv.org/abs/2407.15754), [Video-MME](https://arxiv.org/abs/2405.21075), and [MLVU](https://arxiv.org/abs/2406.04264). 
 
@@ -18,74 +19,20 @@ conda activate bimba
 pip install -r requirements.txt
 ```
 This codebase is built on [LLaVA-NeXT](https://github.com/LLaVA-VL/LLaVA-NeXT) and [mamba](https://github.com/state-spaces/mamba) codebases.
-## Model Inference
+
+
+## Download Model
+Download the model from [🤗 HuggingFace](https://huggingface.co/mmiemon/BIMBA-LLaVA-Qwen2-7B).
+```bash
+cd BIMBA-LLaVA-NeXT/checkpoints
+git clone https://huggingface.co/mmiemon/BIMBA-LLaVA-Qwen2-7B
+```
+
+## Demo Inference
+Use the following script to make inference on any video.
 ```python
-# git clone https://github.com/md-mohaiminul/BIMBA.git
-# cd BIMBA-LLaVA-NeXT
-from llava.model.builder import load_pretrained_model
-from llava.mm_utils import get_model_name_from_path, process_images, tokenizer_image_token
-from llava.constants import IMAGE_TOKEN_INDEX, DEFAULT_IMAGE_TOKEN, DEFAULT_IM_START_TOKEN, DEFAULT_IM_END_TOKEN, IGNORE_INDEX
-from llava.conversation import conv_templates, SeparatorStyle
-from PIL import Image
-import requests
-import copy
-import torch
-import sys
-import warnings
-from decord import VideoReader, cpu
-import numpy as np
-warnings.filterwarnings("ignore")
-
-def load_video(video_path, max_frames_num,fps=1,force_sample=False):
-    if max_frames_num == 0:
-        return np.zeros((1, 336, 336, 3))
-    vr = VideoReader(video_path, ctx=cpu(0),num_threads=1)
-    total_frame_num = len(vr)
-    video_time = total_frame_num / vr.get_avg_fps()
-    fps = round(vr.get_avg_fps()/fps)
-    frame_idx = [i for i in range(0, len(vr), fps)]
-    frame_time = [i/fps for i in frame_idx]
-    if len(frame_idx) > max_frames_num or force_sample:
-        sample_fps = max_frames_num
-        uniform_sampled_frames = np.linspace(0, total_frame_num - 1, sample_fps, dtype=int)
-        frame_idx = uniform_sampled_frames.tolist()
-        frame_time = [i/vr.get_avg_fps() for i in frame_idx]
-    frame_time = ",".join([f"{i:.2f}s" for i in frame_time])
-    spare_frames = vr.get_batch(frame_idx).asnumpy()
-    # import pdb;pdb.set_trace()
-    return spare_frames,frame_time,video_time
-
-model_path = "checkpoints/BIMBA-LLaVA-Qwen2-7B"
-model_base = "lmms-lab/LLaVA-Video-7B-Qwen2"
-model_name = "llava_qwen_lora"
-device = "cuda"
-device_map = "auto"
-tokenizer, model, image_processor, max_length = load_pretrained_model(model_path = model_path, model_base = model_base, model_name = model_name, torch_dtype="bfloat16", device_map=device_map,attn_implementation=None)
-model.eval()
-
-video_path = "/mnt/opr/ce/datasets/NextQA/videos/0000/2440175990.mp4"
-max_frames_num = 64
-video,frame_time,video_time = load_video(video_path, max_frames_num, 1, force_sample=True)
-video = image_processor.preprocess(video, return_tensors="pt")["pixel_values"].cuda().bfloat16()
-video = [video]
-conv_template = "qwen_1_5"  # Make sure you use correct chat template for different models
-time_instruciton = f"The video lasts for {video_time:.2f} seconds, and {len(video[0])} frames are uniformly sampled from it. These frames are located at {frame_time}.Please answer the following questions related to this video."
-question = DEFAULT_IMAGE_TOKEN + f"{time_instruciton}\nPlease describe this video in detail."
-conv = copy.deepcopy(conv_templates[conv_template])
-conv.append_message(conv.roles[0], question)
-conv.append_message(conv.roles[1], None)
-prompt_question = conv.get_prompt()
-input_ids = tokenizer_image_token(prompt_question, tokenizer, IMAGE_TOKEN_INDEX, return_tensors="pt").unsqueeze(0).to(device)
-cont = model.generate(
-    input_ids,
-    images=video,
-    modalities= ["video"],
-    do_sample=False,
-    temperature=0,
-    max_new_tokens=4096,
-)
-text_outputs = tokenizer.batch_decode(cont, skip_special_tokens=True)[0].strip()
-print(text_outputs)
+cd BIMBA-LLaVA-NeXT
+python demo_inference.py
 ```
 
 ## Model Training

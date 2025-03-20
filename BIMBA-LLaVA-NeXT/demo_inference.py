@@ -31,7 +31,7 @@ def load_video(video_path, max_frames_num,fps=1,force_sample=False):
     # import pdb;pdb.set_trace()
     return spare_frames,frame_time,video_time
 
-model_path = "checkpoints/BIMBA-LLaVA-Qwen2-7B"
+model_path = "checkpoints/tmp/BIMBA-LLaVA-Qwen2-7B"
 model_base = "lmms-lab/LLaVA-Video-7B-Qwen2"
 model_name = "llava_qwen_lora"
 
