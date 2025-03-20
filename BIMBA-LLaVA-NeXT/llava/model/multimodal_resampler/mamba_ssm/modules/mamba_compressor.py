@@ -160,7 +160,7 @@ class MambaCompressor(nn.Module):
         # 2 torch.Size([64, 196, 3584])
 
         b, f, h, w, c = space_time_tokens.shape
-        #b, f, l, c = hidden_states.shape
+        b, f, l, c = hidden_states.shape
         hidden_states = hidden_states.reshape(b, -1, c)
         n_query = hidden_states.shape[1]
 
@@ -206,6 +206,7 @@ class MambaCompressor(nn.Module):
                 space_time_tokens = space_time_tokens.reshape(b, -1, h, w, c)
                 space_time_tokens = space_time_tokens[:, ::2]
         
-        hidden_states = hidden_states.reshape(b, f, -1, c)
+        #hidden_states = hidden_states.reshape(b, f, -1, c)
+        hidden_states = hidden_states.reshape(b, -1, l, c)
 
         return hidden_states
