@@ -2,7 +2,7 @@
 
 [**BIMBA: Selective-Scan Compression for Long-Range Video Question Answering**](https://arxiv.org/abs/2503.09590)\
 Md Mohaiminul Islam, Tushar Nagarajan, Huiyu Wang, Gedas Bertasius, and Lorenzo Torresani\
-<span style="color:red">Accepted by CVPR 2025</span>
+<span style="color:red">**Accepted by CVPR 2025**</span>
 
 [**🌐 Homepage**](https://sites.google.com/view/bimba-mllm) | [**📖 arXiv**](https://arxiv.org/abs/2503.09590) | [**💻 GitHub**](https://github.com/md-mohaiminul/BIMBA) | [**🤗 Model**](https://huggingface.co/mmiemon/BIMBA-LLaVA-Qwen2-7B) | [**🌟 Demo**](BIMBA-LLaVA-NeXT/demo_selective_scan_compression.ipynb)
 
@@ -50,7 +50,7 @@ bash scripts/video/train/Train_BIMBA_LLaVA_Qwen2_7B.sh
 
 ## Evaluation
 
-### Evaluate A Single Dataset (e.g., [VideoMME](https://huggingface.co/datasets/lmms-lab/Video-MME))
+### Evaluate Single Dataset (e.g., [VideoMME](https://huggingface.co/datasets/lmms-lab/Video-MME))
 
 1. First, download the videos from the huggingface/dataset repo and replace "path_to_video_folder" accordingly.
 2. We provide the formatted json files for the evaluation datasets in the `BIMBA-LLaVA-NeXT/DATAS/eval` folder. You can format a new dataset using the script.  
@@ -80,7 +80,7 @@ python llava/eval/infer.py \
 
 ### Evaluate All Benchmarks
 
-1. Use the following script to evaluate PerceptionTest, NextQA, EgoSchema, VNBench, LongVideoBench, VideoMME, and MLVU  benchmarks.
+1. Use the following script to evaluate [PerceptionTest](https://arxiv.org/abs/2305.13786), [NExT-QA](https://arxiv.org/abs/2105.08276), [EgoSchema](https://arxiv.org/abs/2308.09126), [VNBench](https://arxiv.org/abs/2406.09367), [LongVideoBench](https://arxiv.org/abs/2407.15754), [Video-MME](https://arxiv.org/abs/2405.21075), and [MLVU](https://arxiv.org/abs/2406.04264)  benchmarks.
 ```bash
 cd BIMBA-LLaVA-NeXT
 bash scripts/video/eval/Eval_BIMBA_LLaVA_Qwen2_7B.sh
