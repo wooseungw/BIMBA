@@ -32,11 +32,11 @@ cd BIMBA-LLaVA-NeXT/checkpoints
 git clone https://huggingface.co/mmiemon/BIMBA-LLaVA-Qwen2-7B
 ```
 
-## Demo Inference
+## Model Inference
 Use the following script to make inference on any video.
 ```python
 cd BIMBA-LLaVA-NeXT
-python demo_inference.py
+python inference.py
 ```
 
 ## Model Training
