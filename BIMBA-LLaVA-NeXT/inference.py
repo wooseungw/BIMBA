@@ -28,10 +28,9 @@ def load_video(video_path, max_frames_num,fps=1,force_sample=False):
         frame_time = [i/vr.get_avg_fps() for i in frame_idx]
     frame_time = ",".join([f"{i:.2f}s" for i in frame_time])
     spare_frames = vr.get_batch(frame_idx).asnumpy()
-    # import pdb;pdb.set_trace()
     return spare_frames,frame_time,video_time
 
-model_path = "checkpoints/tmp/BIMBA-LLaVA-Qwen2-7B"
+model_path = "checkpoints/BIMBA-LLaVA-Qwen2-7B"
 model_base = "lmms-lab/LLaVA-Video-7B-Qwen2"
 model_name = "llava_qwen_lora"
 
@@ -55,7 +54,7 @@ max_frames_num = 64
 video,frame_time,video_time = load_video(video_path, max_frames_num, 1, force_sample=True)
 video = image_processor.preprocess(video, return_tensors="pt")["pixel_values"].cuda().bfloat16()
 video = [video]
-conv_template = "qwen_1_5"  # Make sure you use correct chat template for different models
+conv_template = "qwen_1_5"
 time_instruciton = f"The video lasts for {video_time:.2f} seconds, and {len(video[0])} frames are uniformly sampled from it. These frames are located at {frame_time}.Please answer the following questions related to this video."
 question = DEFAULT_IMAGE_TOKEN + f"{time_instruciton}\nPlease describe this video in detail."
 conv = copy.deepcopy(conv_templates[conv_template])

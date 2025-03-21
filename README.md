@@ -1,17 +1,27 @@
 # BIMBA
 
+[**🌐 Homepage**](https://sites.google.com/view/bimba-mllm) | [**📖 arXiv**](https://arxiv.org/abs/2503.09590) | [**💻 GitHub**](https://github.com/md-mohaiminul/BIMBA) | [**🤗 Model**](https://huggingface.co/mmiemon/BIMBA-LLaVA-Qwen2-7B) | [**🌟 Demo**](BIMBA-LLaVA-NeXT/demo_selective_scan_compression.ipynb)
+
 [**BIMBA: Selective-Scan Compression for Long-Range Video Question Answering**](https://arxiv.org/abs/2503.09590)\
 Md Mohaiminul Islam, Tushar Nagarajan, Huiyu Wang, Gedas Bertasius, and Lorenzo Torresani\
 <span style="color:red">**Accepted by CVPR 2025**</span>
 
-[**🌐 Homepage**](https://sites.google.com/view/bimba-mllm) | [**📖 arXiv**](https://arxiv.org/abs/2503.09590) | [**💻 GitHub**](https://github.com/md-mohaiminul/BIMBA) | [**🤗 Model**](https://huggingface.co/mmiemon/BIMBA-LLaVA-Qwen2-7B) | [**🌟 Demo**](BIMBA-LLaVA-NeXT/demo_selective_scan_compression.ipynb)
+[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/bimba-selective-scan-compression-for-long/zero-shot-video-question-answer-on-egoschema-1)](https://paperswithcode.com/sota/zero-shot-video-question-answer-on-egoschema-1?p=bimba-selective-scan-compression-for-long)
 
+## 📢 Latest Updates
+
+**Mar 20, 2025**: BIMBA-LLaVA-Qwen2-7B model weigts are released on [HuggingFace 🤗](https://huggingface.co/mmiemon/BIMBA-LLaVA-Qwen2-7B) \
+**Mar 20, 2025**: Released the training and evaluation code.\
+**Feb 27, 2025**: BIMBA is accepted by CVPR 2025! 🔥🔥
+
+
+## BIMBA Overview
 
 BIMBA is a multimodal large language model (MLLM) capable of efficiently processing long-range videos. Our model leverages the selective scan mechanism of [Mamba](https://arxiv.org/abs/2312.00752) to effectively select critical information from high-dimensional video and transform it into a reduced token sequence for efficient LLM processing. Extensive experiments demonstrate that BIMBA  achieves state-of-the-art accuracy on multiple long-form VQA benchmarks, including [PerceptionTest](https://arxiv.org/abs/2305.13786), [NExT-QA](https://arxiv.org/abs/2105.08276), [EgoSchema](https://arxiv.org/abs/2308.09126), [VNBench](https://arxiv.org/abs/2406.09367), [LongVideoBench](https://arxiv.org/abs/2407.15754), [Video-MME](https://arxiv.org/abs/2405.21075), and [MLVU](https://arxiv.org/abs/2406.04264). 
 
 <img src="BIMBA-LLaVA-NeXT/assets/model.png"> 
 
-## Installation
+## Installation 🔧
 Please use the following commands to install the required packages:
 ```bash
 cd BIMBA-LLaVA-NeXT
@@ -26,7 +36,7 @@ We provide a [demo notebook](BIMBA-LLaVA-NeXT/demo_selective_scan_compression.ip
 
 
 ## Download Model
-Download the model from [🤗 HuggingFace](https://huggingface.co/mmiemon/BIMBA-LLaVA-Qwen2-7B).
+Download the model from [HuggingFace 🤗](https://huggingface.co/mmiemon/BIMBA-LLaVA-Qwen2-7B)
 ```bash
 cd BIMBA-LLaVA-NeXT/checkpoints
 git clone https://huggingface.co/mmiemon/BIMBA-LLaVA-Qwen2-7B
