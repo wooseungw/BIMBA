@@ -8,6 +8,14 @@ Md Mohaiminul Islam, Tushar Nagarajan, Huiyu Wang, Gedas Bertasius, and Lorenzo 
 
 [![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/bimba-selective-scan-compression-for-long/zero-shot-video-question-answer-on-egoschema-1)](https://paperswithcode.com/sota/zero-shot-video-question-answer-on-egoschema-1?p=bimba-selective-scan-compression-for-long)
 
+[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/bimba-selective-scan-compression-for-long/zero-shot-video-question-answer-on-vnbench)](https://paperswithcode.com/sota/zero-shot-video-question-answer-on-vnbench?p=bimba-selective-scan-compression-for-long)
+
+[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/bimba-selective-scan-compression-for-long/video-question-answering-on-perception-test)](https://paperswithcode.com/sota/video-question-answering-on-perception-test?p=bimba-selective-scan-compression-for-long)
+
+[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/bimba-selective-scan-compression-for-long/video-question-answering-on-next-qa)](https://paperswithcode.com/sota/video-question-answering-on-next-qa?p=bimba-selective-scan-compression-for-long)
+
+[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/bimba-selective-scan-compression-for-long/zero-shot-video-question-answer-on-video-mme-1)](https://paperswithcode.com/sota/zero-shot-video-question-answer-on-video-mme-1?p=bimba-selective-scan-compression-for-long)
+
 ## 📢 Latest Updates
 
 **Mar 20, 2025**: BIMBA-LLaVA-Qwen2-7B model weigts are released on [HuggingFace 🤗](https://huggingface.co/mmiemon/BIMBA-LLaVA-Qwen2-7B) \

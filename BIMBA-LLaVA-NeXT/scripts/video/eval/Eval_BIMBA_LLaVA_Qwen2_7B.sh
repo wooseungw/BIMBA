@@ -75,7 +75,7 @@ python llava/eval/infer.py \
     --results_dir ${results_dir}/${dataset_name} \
     --max_frames_num 128 \
     --dataset_name $dataset_name \
-    --data_path DATAS/eval/VNBench/formatted_dataset.json \
+    --data_path DATAS/eval/VNBench/formatted_dataset_4try.json \
     --video_root "path_to_video_folder" \
     --cals_acc
 
