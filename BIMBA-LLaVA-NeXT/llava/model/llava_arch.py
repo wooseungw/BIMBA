@@ -181,7 +181,6 @@ class LlavaMetaForCausalLM(ABC):
         
         if compressor_type == "bimba":
             space_time_tokens = image_feature.unsqueeze(0)
-        print(1, space_time_tokens.shape)
 
         temporal_pooling = getattr(self.config, "temporal_pooling", 1)
         if temporal_pooling>1:
@@ -191,7 +190,6 @@ class LlavaMetaForCausalLM(ABC):
             image_feature = image_feature.permute(2, 0, 1)
             num_frames = num_frames//temporal_pooling
             image_feature = image_feature.view(num_frames, height, width, -1)
-        print(2, image_feature.shape)
 
         image_feature = image_feature.permute(0, 3, 1, 2).contiguous()
         if self.config.mm_spatial_pool_mode == "average":
