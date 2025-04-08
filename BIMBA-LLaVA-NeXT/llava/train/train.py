@@ -98,6 +98,7 @@ class ModelArguments:
     mm_qformer_latents: Optional[int] = field(default=32)
     mm_qformer_pretrained: Optional[str] = field(default=None)
 
+    temporal_pooling: Optional[int] = field(default=1)
     compressor_type: Optional[str] = field(default=None)
 
     rope_scaling_factor: Optional[float] = field(default=None)
@@ -1385,6 +1386,7 @@ def get_model(model_args, training_args, bnb_model_from_pretrained_args):
             model_args.mm_spatial_pool_mode is not None,
             model_args.mm_resampler_type is not None,
             model_args.compressor_type is not None,
+            model_args.temporal_pooling is not None,
         ]
     ):
         cfg_pretrained = AutoConfig.from_pretrained(model_args.model_name_or_path)
@@ -1415,6 +1417,9 @@ def get_model(model_args, training_args, bnb_model_from_pretrained_args):
     
     if model_args.compressor_type is not None:
         overwrite_config["compressor_type"] = model_args.compressor_type
+    
+    if model_args.temporal_pooling is not None:
+        overwrite_config["temporal_pooling"] = model_args.temporal_pooling
 
     if model_args.mm_spatial_pool_mode is not None:
         overwrite_config["mm_spatial_pool_mode"] = model_args.mm_spatial_pool_mode

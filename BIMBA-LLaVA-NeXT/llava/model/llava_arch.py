@@ -180,11 +180,20 @@ class LlavaMetaForCausalLM(ABC):
         compressor_type = getattr(self.config, "compressor_type", None)
         
         if compressor_type == "bimba":
-            #print(1, image_feature.shape)
             space_time_tokens = image_feature.unsqueeze(0)
+        print(1, space_time_tokens.shape)
+
+        temporal_pooling = getattr(self.config, "temporal_pooling", 1)
+        if temporal_pooling>1:
+            image_feature = image_feature.reshape(num_frames, num_tokens, num_dim)
+            image_feature = image_feature.permute(1, 2, 0)
+            image_feature = nn.functional.avg_pool1d(image_feature, kernel_size=temporal_pooling, stride=temporal_pooling)
+            image_feature = image_feature.permute(2, 0, 1)
+            num_frames = num_frames//temporal_pooling
+            image_feature = image_feature.view(num_frames, height, width, -1)
+        print(2, image_feature.shape)
 
         image_feature = image_feature.permute(0, 3, 1, 2).contiguous()
-        # image_feature = nn.functional.max_pool2d(image_feature, self.config.mm_spatial_pool_stride)
         if self.config.mm_spatial_pool_mode == "average":
             image_feature = nn.functional.avg_pool2d(image_feature, stride)
         elif self.config.mm_spatial_pool_mode == "max":
@@ -200,11 +209,8 @@ class LlavaMetaForCausalLM(ABC):
 
         if compressor_type == "bimba":
             image_feature = image_feature.unsqueeze(0)
-            #print(2, space_time_tokens.shape, image_feature.shape)
             image_feature = self.get_model().compressor(space_time_tokens, image_feature)
-            #print(3, image_feature.shape)
             image_feature = torch.squeeze(image_feature, 0)
-            #print(3, image_feature.shape)
 
         return image_feature
 

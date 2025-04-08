@@ -1,8 +1,8 @@
 
 
-model_path = "checkpoints/BIMBA-LLaVA-Qwen2-7B"
-model_base = "lmms-lab/LLaVA-Video-7B-Qwen2"
-model_name = "llava_qwen_lora"
+model_path="checkpoints/BIMBA-LLaVA-Qwen2-7B"
+model_base="lmms-lab/LLaVA-Video-7B-Qwen2"
+model_name="llava_qwen_lora"
 
 results_dir=results/BIMBA-LLaVA-Qwen2-7B
 

@@ -117,6 +117,7 @@ def run(rank, world_size, args):
                                                         lora_alpha = args.lora_alpha,
                                                         torch_dtype="bfloat16",
                                                         device_map="auto",
+                                                        overwrite_config = {"temporal_pooling":args.temporal_pooling},
                                                         #device_map = {"": torch.device(f"cuda:{rank}")},
                                                     )
     model.eval()
@@ -171,6 +172,7 @@ def main():
     parser.add_argument("--model_base", type=str, default=None)
     parser.add_argument("--model_path", type=str, default="lmms-lab/LLaVA-Video-7B-Qwen2")
     parser.add_argument("--max_frames_num", type=int, default=64)
+    parser.add_argument("--temporal_pooling", type=int, default=1)
     parser.add_argument("--max_new_tokens", type=int, default=4096)
     parser.add_argument("--conv_template", type=str, default="qwen_1_5")
     parser.add_argument("--use_time_ins", action="store_true")
@@ -191,6 +193,7 @@ def main():
 
     os.makedirs(args.results_dir, exist_ok=True)
     os.makedirs(f"{args.results_dir}/outputs", exist_ok=True)
+
 
     if args.multiprocess:
         mp.set_start_method("spawn")

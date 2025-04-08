@@ -30,6 +30,7 @@ def load_pretrained_model(model_path, model_base, model_name, load_8bit=False, l
 
     kwargs["device_map"] = device_map
 
+
     if load_8bit:
         kwargs["load_in_8bit"] = True
     elif load_4bit:
@@ -97,18 +98,29 @@ def load_pretrained_model(model_path, model_base, model_name, load_8bit=False, l
 
                 else:
                     from llava.model.language_model.llava_qwen import LlavaQwenConfig
+                    llava_cfg = LlavaQwenConfig.from_pretrained(model_base)
                     if overwrite_config is not None:
-                        llava_cfg = LlavaQwenConfig.from_pretrained(model_path)
                         rank0_print(f"Overwriting config with {overwrite_config}")
                         for k, v in overwrite_config.items():
                             setattr(llava_cfg, k, v)
-                        model = LlavaQwenForCausalLM.from_pretrained(model_base, low_cpu_mem_usage=True, attn_implementation=attn_implementation, config=llava_cfg, **kwargs)
-                    else:
-                        llava_cfg = LlavaQwenConfig.from_pretrained(model_base)
-                        saved_config = LlavaQwenConfig.from_pretrained(model_path)
-                        if hasattr(saved_config, "compressor_type"):
-                            llava_cfg.compressor_type = saved_config.compressor_type
-                        model = LlavaQwenForCausalLM.from_pretrained(model_base, low_cpu_mem_usage=True, attn_implementation=attn_implementation, config=llava_cfg, **kwargs)
+                    saved_config = LlavaQwenConfig.from_pretrained(model_path)
+                    if hasattr(saved_config, "compressor_type"):
+                        llava_cfg.compressor_type = saved_config.compressor_type
+                    model = LlavaQwenForCausalLM.from_pretrained(model_base, low_cpu_mem_usage=True, attn_implementation=attn_implementation, config=llava_cfg, **kwargs)
+                    
+                    # from llava.model.language_model.llava_qwen import LlavaQwenConfig
+                    # if overwrite_config is not None:
+                    #     llava_cfg = LlavaQwenConfig.from_pretrained(model_path)
+                    #     rank0_print(f"Overwriting config with {overwrite_config}")
+                    #     for k, v in overwrite_config.items():
+                    #         setattr(llava_cfg, k, v)
+                    #     model = LlavaQwenForCausalLM.from_pretrained(model_base, low_cpu_mem_usage=True, attn_implementation=attn_implementation, config=llava_cfg, **kwargs)
+                    # else:
+                    #     llava_cfg = LlavaQwenConfig.from_pretrained(model_base)
+                    #     saved_config = LlavaQwenConfig.from_pretrained(model_path)
+                    #     if hasattr(saved_config, "compressor_type"):
+                    #         llava_cfg.compressor_type = saved_config.compressor_type
+                    #     model = LlavaQwenForCausalLM.from_pretrained(model_base, low_cpu_mem_usage=True, attn_implementation=attn_implementation, config=llava_cfg, **kwargs)
 
             else:
                 from llava.model.language_model.llava_llama import LlavaConfig
@@ -262,14 +274,25 @@ def load_pretrained_model(model_path, model_base, model_name, load_8bit=False, l
 
                 else:
                     from llava.model.language_model.llava_qwen import LlavaQwenConfig
+                    llava_cfg = LlavaQwenConfig.from_pretrained(model_base)
                     if overwrite_config is not None:
-                        llava_cfg = LlavaQwenConfig.from_pretrained(model_path)
                         rank0_print(f"Overwriting config with {overwrite_config}")
                         for k, v in overwrite_config.items():
                             setattr(llava_cfg, k, v)
-                        model = LlavaQwenForCausalLM.from_pretrained(model_path, low_cpu_mem_usage=True, attn_implementation=attn_implementation, config=llava_cfg, **kwargs)
-                    else:
-                        model = LlavaQwenForCausalLM.from_pretrained(model_path, low_cpu_mem_usage=True, attn_implementation=attn_implementation, **kwargs)
+                    saved_config = LlavaQwenConfig.from_pretrained(model_path)
+                    if hasattr(saved_config, "compressor_type"):
+                        llava_cfg.compressor_type = saved_config.compressor_type
+                    model = LlavaQwenForCausalLM.from_pretrained(model_base, low_cpu_mem_usage=True, attn_implementation=attn_implementation, config=llava_cfg, **kwargs)
+
+                    # from llava.model.language_model.llava_qwen import LlavaQwenConfig
+                    # if overwrite_config is not None:
+                    #     llava_cfg = LlavaQwenConfig.from_pretrained(model_path)
+                    #     rank0_print(f"Overwriting config with {overwrite_config}")
+                    #     for k, v in overwrite_config.items():
+                    #         setattr(llava_cfg, k, v)
+                    #     model = LlavaQwenForCausalLM.from_pretrained(model_path, low_cpu_mem_usage=True, attn_implementation=attn_implementation, config=llava_cfg, **kwargs)
+                    # else:
+                    #     model = LlavaQwenForCausalLM.from_pretrained(model_path, low_cpu_mem_usage=True, attn_implementation=attn_implementation, **kwargs)
 
             elif "gemma" in model_name.lower():
                 tokenizer = AutoTokenizer.from_pretrained(model_path, use_fast=False)
