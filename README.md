@@ -16,12 +16,6 @@ Md Mohaiminul Islam, Tushar Nagarajan, Huiyu Wang, Gedas Bertasius, and Lorenzo 
 
 [![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/bimba-selective-scan-compression-for-long/zero-shot-video-question-answer-on-video-mme-1)](https://paperswithcode.com/sota/zero-shot-video-question-answer-on-video-mme-1?p=bimba-selective-scan-compression-for-long)
 
-## 📢 Latest Updates
-
-**Mar 20, 2025**: BIMBA-LLaVA-Qwen2-7B model weigts are released on [HuggingFace 🤗](https://huggingface.co/mmiemon/BIMBA-LLaVA-Qwen2-7B) \
-**Mar 20, 2025**: Released the training and evaluation code.\
-**Feb 27, 2025**: BIMBA is accepted by CVPR 2025! 🔥🔥
-
 
 ## BIMBA Overview
 
@@ -35,7 +29,7 @@ Please use the following commands to install the required packages:
 cd BIMBA-LLaVA-NeXT
 conda create --name bimba python=3.10
 conda activate bimba
-pip install -r requirements.txt
+pip install e .
 ```
 This codebase is built on [LLaVA-NeXT](https://github.com/LLaVA-VL/LLaVA-NeXT) and [mamba](https://github.com/state-spaces/mamba) codebases.
 
@@ -46,7 +40,7 @@ We provide a [demo notebook](BIMBA-LLaVA-NeXT/demo_selective_scan_compression.ip
 ## Download Model
 Download the model from [HuggingFace 🤗](https://huggingface.co/mmiemon/BIMBA-LLaVA-Qwen2-7B)
 ```bash
-cd BIMBA-LLaVA-NeXT/checkpoints
+cd checkpoints
 git clone https://huggingface.co/mmiemon/BIMBA-LLaVA-Qwen2-7B
 ```
 
