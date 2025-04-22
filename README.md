@@ -1,5 +1,10 @@
 # BIMBA Original link
-
+@article{islam2025bimba,
+  title={BIMBA: Selective-Scan Compression for Long-Range Video Question Answering},
+  author={Islam, Md Mohaiminul and Nagarajan, Tushar and Wang, Huiyu and Bertasius, Gedas and Torresani, Lorenzo},
+  journal={arXiv preprint arXiv:2503.09590},
+  year={2025}
+}
 [**🌐 Homepage**](https://sites.google.com/view/bimba-mllm) | [**📖 arXiv**](https://arxiv.org/abs/2503.09590) | [**💻 GitHub**](https://github.com/md-mohaiminul/BIMBA) | [**🤗 Model**](https://huggingface.co/mmiemon/BIMBA-LLaVA-Qwen2-7B) | [**🌟 Demo**](BIMBA-LLaVA-NeXT/demo_selective_scan_compression.ipynb)
 
 [**BIMBA: Selective-Scan Compression for Long-Range Video Question Answering**](https://arxiv.org/abs/2503.09590)\
@@ -26,7 +31,6 @@ BIMBA is a multimodal large language model (MLLM) capable of efficiently process
 ## Installation 🔧
 Please use the following commands to install the required packages:
 ```bash
-cd BIMBA-LLaVA-NeXT
 conda create --name bimba python=3.10
 conda activate bimba
 pip install e .
@@ -47,7 +51,6 @@ git clone https://huggingface.co/mmiemon/BIMBA-LLaVA-Qwen2-7B
 ## Model Inference
 Use the following script to make inference on any video.
 ```python
-cd BIMBA-LLaVA-NeXT
 python inference.py
 ```
 
@@ -56,7 +59,6 @@ python inference.py
 Update the [exp.yaml](BIMBA-LLaVA-NeXT/scripts/video/train/exp.yaml) file to point to your data.
 2. Follow the commands below to train BIMBA model:
 ```bash
-cd BIMBA-LLaVA-NeXT
 bash scripts/video/train/Train_BIMBA_LLaVA_Qwen2_7B.sh
 ```
 
@@ -67,12 +69,10 @@ bash scripts/video/train/Train_BIMBA_LLaVA_Qwen2_7B.sh
 1. First, download the videos from the huggingface/dataset repo and replace "path_to_video_folder" accordingly.
 2. We provide the formatted json files for the evaluation datasets in the `BIMBA-LLaVA-NeXT/DATAS/eval` folder. You can format a new dataset using the script.  
 ```python
-cd BIMBA-LLaVA-NeXT
 python llava/eval/format_eval_data.py
 ```
 3. Use the following script to evaluate a particular dataset.
 ```bash
-cd BIMBA-LLaVA-NeXT
 model_path = "checkpoints/BIMBA-LLaVA-Qwen2-7B"
 model_base = "lmms-lab/LLaVA-Video-7B-Qwen2"
 model_name = "llava_qwen_lora"
@@ -94,7 +94,6 @@ python llava/eval/infer.py \
 
 1. Use the following script to evaluate [PerceptionTest](https://arxiv.org/abs/2305.13786), [NExT-QA](https://arxiv.org/abs/2105.08276), [EgoSchema](https://arxiv.org/abs/2308.09126), [VNBench](https://arxiv.org/abs/2406.09367), [LongVideoBench](https://arxiv.org/abs/2407.15754), [Video-MME](https://arxiv.org/abs/2405.21075), and [MLVU](https://arxiv.org/abs/2406.04264)  benchmarks.
 ```bash
-cd BIMBA-LLaVA-NeXT
 bash scripts/video/eval/Eval_BIMBA_LLaVA_Qwen2_7B.sh
 ```
 
@@ -136,16 +135,3 @@ kaggle competitions submit -c egoschema-public -f results/BIMBA-LLaVA-Qwen2-7B/E
   </tr>
 </table>
 
-
-
-
-## Citation
-If you find BIMBA useful in your research, please use the following BibTeX entry for citation.
-```BibTeX
-@article{islam2025bimba,
-  title={BIMBA: Selective-Scan Compression for Long-Range Video Question Answering},
-  author={Islam, Md Mohaiminul and Nagarajan, Tushar and Wang, Huiyu and Bertasius, Gedas and Torresani, Lorenzo},
-  journal={arXiv preprint arXiv:2503.09590},
-  year={2025}
-}
-```
