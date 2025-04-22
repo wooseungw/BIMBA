@@ -1,4 +1,4 @@
-# BIMBA
+# BIMBA Original link
 
 [**🌐 Homepage**](https://sites.google.com/view/bimba-mllm) | [**📖 arXiv**](https://arxiv.org/abs/2503.09590) | [**💻 GitHub**](https://github.com/md-mohaiminul/BIMBA) | [**🤗 Model**](https://huggingface.co/mmiemon/BIMBA-LLaVA-Qwen2-7B) | [**🌟 Demo**](BIMBA-LLaVA-NeXT/demo_selective_scan_compression.ipynb)
 
