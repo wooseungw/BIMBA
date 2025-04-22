@@ -1,10 +1,12 @@
 # BIMBA Original link
+
 @article{islam2025bimba,
   title={BIMBA: Selective-Scan Compression for Long-Range Video Question Answering},
   author={Islam, Md Mohaiminul and Nagarajan, Tushar and Wang, Huiyu and Bertasius, Gedas and Torresani, Lorenzo},
   journal={arXiv preprint arXiv:2503.09590},
   year={2025}
 }
+
 [**🌐 Homepage**](https://sites.google.com/view/bimba-mllm) | [**📖 arXiv**](https://arxiv.org/abs/2503.09590) | [**💻 GitHub**](https://github.com/md-mohaiminul/BIMBA) | [**🤗 Model**](https://huggingface.co/mmiemon/BIMBA-LLaVA-Qwen2-7B) | [**🌟 Demo**](BIMBA-LLaVA-NeXT/demo_selective_scan_compression.ipynb)
 
 [**BIMBA: Selective-Scan Compression for Long-Range Video Question Answering**](https://arxiv.org/abs/2503.09590)\
