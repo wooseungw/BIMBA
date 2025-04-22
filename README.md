@@ -15,29 +15,24 @@
 Md Mohaiminul Islam, Tushar Nagarajan, Huiyu Wang, Gedas Bertasius, and Lorenzo Torresani\
 <span style="color:red">**Accepted by CVPR 2025**</span>
 
-[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/bimba-selective-scan-compression-for-long/zero-shot-video-question-answer-on-egoschema-1)](https://paperswithcode.com/sota/zero-shot-video-question-answer-on-egoschema-1?p=bimba-selective-scan-compression-for-long)
-
-[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/bimba-selective-scan-compression-for-long/zero-shot-video-question-answer-on-vnbench)](https://paperswithcode.com/sota/zero-shot-video-question-answer-on-vnbench?p=bimba-selective-scan-compression-for-long)
-
-[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/bimba-selective-scan-compression-for-long/video-question-answering-on-perception-test)](https://paperswithcode.com/sota/video-question-answering-on-perception-test?p=bimba-selective-scan-compression-for-long)
-
-[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/bimba-selective-scan-compression-for-long/video-question-answering-on-next-qa)](https://paperswithcode.com/sota/video-question-answering-on-next-qa?p=bimba-selective-scan-compression-for-long)
-
-[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/bimba-selective-scan-compression-for-long/zero-shot-video-question-answer-on-video-mme-1)](https://paperswithcode.com/sota/zero-shot-video-question-answer-on-video-mme-1?p=bimba-selective-scan-compression-for-long)
-
 
 ## BIMBA Overview
 
 BIMBA is a multimodal large language model (MLLM) capable of efficiently processing long-range videos. Our model leverages the selective scan mechanism of [Mamba](https://arxiv.org/abs/2312.00752) to effectively select critical information from high-dimensional video and transform it into a reduced token sequence for efficient LLM processing. Extensive experiments demonstrate that BIMBA  achieves state-of-the-art accuracy on multiple long-form VQA benchmarks, including [PerceptionTest](https://arxiv.org/abs/2305.13786), [NExT-QA](https://arxiv.org/abs/2105.08276), [EgoSchema](https://arxiv.org/abs/2308.09126), [VNBench](https://arxiv.org/abs/2406.09367), [LongVideoBench](https://arxiv.org/abs/2407.15754), [Video-MME](https://arxiv.org/abs/2405.21075), and [MLVU](https://arxiv.org/abs/2406.04264). 
-
-<img src="BIMBA-LLaVA-NeXT/assets/model.png"> 
 
 ## Installation 🔧
 Please use the following commands to install the required packages:
 ```bash
 conda create --name bimba python=3.10
 conda activate bimba
+pip install --upgrade pip # PEP 660
 pip install e .
+```
+```bash
+conda create --name bimba python=3.10
+conda activate bimba
+pip install --upgrade pip # PEP 660
+pip install e ".[train]"
 ```
 This codebase is built on [LLaVA-NeXT](https://github.com/LLaVA-VL/LLaVA-NeXT) and [mamba](https://github.com/state-spaces/mamba) codebases.
 
