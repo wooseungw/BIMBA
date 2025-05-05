@@ -1,6 +1,12 @@
 # test_blip2_tower.py
 import os
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+# test_blip2_tower.py
+import os
+import sys
+
+# 프로젝트 루트 경로를 시스템 경로에 추가
+sys.path.append('e://Workspace/BIMBA')
 import requests
 from PIL import Image
 import torch
@@ -22,18 +28,18 @@ def test_blip2_vision_tower():
 
     # 2) 모델 초기화
     tower = Blip2VisionTower(
-        model_name="Salesforce/blip2-opt-2.7b", 
-        vision_tower_cfg=None,
+        vision_tower="Salesforce/blip2-opt-2.7b", 
     )
-    tower.eval()
 
     # 3) forward 호출
     with torch.no_grad():
         features = tower([test_img],[texts])
 
     # 4) 결과 출력
-    print(f"■ features.shape: ",features["image_features"].shape)   # (1, seq_len, hidden_size)
-    print(f"■ captions     : {features['captions']}")         # ["...생성된 캡션..."]
+    for feature  in features:
+        print(feature["image_features"].shape)  # [1, 36, 1024]
+        print(feature["captions"])
+        
 
 if __name__ == "__main__":
     test_blip2_vision_tower()

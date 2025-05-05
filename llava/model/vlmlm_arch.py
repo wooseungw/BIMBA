@@ -211,36 +211,12 @@ class LlavaMetaForCausalLM(ABC):
             image_feature = torch.squeeze(image_feature, 0)
 
         return image_feature
-    
+
     def encode_images(self, images):
         image_features = self.get_model().get_vision_tower()(images)
         # image_features = self.get_model().vision_resampler(image_features, images=images)
         image_features = self.get_model().mm_projector(image_features)
         return image_features
-    
-    def encode_multimodals(self, videos_or_images, video_idx_in_batch, split_sizes=None):
-        videos_or_images_features = self.get_model().get_vision_tower()(videos_or_images)
-        per_videos_or_images_features = torch.split(videos_or_images_features, split_sizes, dim=0)  # tuple, (dim_1, 576, 4096)
-        all_videos_or_images_features = []
-        all_faster_video_features = []
-        cur_mm_spatial_pool_stride = self.config.mm_spatial_pool_stride
-
-        for idx, feat in enumerate(per_videos_or_images_features):
-            
-            feat = self.get_model().mm_projector(feat)
-            faster_video_feature = 0
-            slower_img_feat = 0
-            if idx in video_idx_in_batch and cur_mm_spatial_pool_stride > 1:
-                slower_img_feat = self.get_2dPool(feat,cur_mm_spatial_pool_stride)
-                if self.config.add_faster_video:
-                    cur_mm_spatial_pool_stride = cur_mm_spatial_pool_stride * 2
-                    faster_video_feature = self.get_2dPool(feat,cur_mm_spatial_pool_stride)
-            if slower_img_feat is not 0:
-                all_videos_or_images_features.append(slower_img_feat)
-            else:
-                all_videos_or_images_features.append(feat)
-            all_faster_video_features.append(faster_video_feature)
-        return all_videos_or_images_features,all_faster_video_features
     
     def encode_multimodals(self, videos_or_images, video_idx_in_batch, split_sizes=None):
         videos_or_images_features = self.get_model().get_vision_tower()(videos_or_images)

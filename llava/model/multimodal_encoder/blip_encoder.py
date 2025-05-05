@@ -8,7 +8,7 @@ from transformers.image_transforms import (
     resize,
     to_channel_dimension_format,
 )
-from transformers import Blip2Processor, Blip2ForConditionalGeneration
+from transformers import Blip2Processor, Blip2ForConditionalGeneration, Blip2Config
 from PIL import Image
 from typing import Union, List
 from llava.utils import rank0_print
@@ -35,27 +35,22 @@ class Blip2VisionTower(nn.Module):
     """
     def __init__(
         self,
-        model_name: str,
-        vision_tower_cfg,
+        vision_tower: str,
+        vision_tower_cfg: Blip2Config = Blip2Config(),
         delay_load=False
     ):
         super().__init__()
-        self.processor = Blip2Processor.from_pretrained(model_name)
-        self.model = Blip2ForConditionalGeneration.from_pretrained(model_name)
         
-        if not delay_load:
-            rank0_print(f"Loading vision tower: {model_name}")
-            self.load_model()
-        elif getattr(vision_tower_cfg, "unfreeze_mm_vision_tower", False):
-            # TODO: better detector is needed.
-            rank0_print(f"The checkpoint seems to contain `vision_tower` weights: `unfreeze_mm_vision_tower`: True.")
-            self.load_model()
-        elif hasattr(vision_tower_cfg, "mm_tunable_parts") and "mm_vision_tower" in vision_tower_cfg.mm_tunable_parts:
-            rank0_print(f"The checkpoint seems to contain `vision_tower` weights: `mm_tunable_parts` contains `mm_vision_tower`.")
-            self.load_model()
+        self.vision_tower_name = vision_tower
+        self.config = Blip2Config()
+        self.processor = Blip2Processor.from_pretrained(self.vision_tower_name)
+        if vision_tower:
+            self.vision_tower = Blip2ForConditionalGeneration.from_pretrained(self.vision_tower_name, device_map="auto")
         else:
             self.cfg_only = self.config
-
+            self.vision_tower = Blip2ForConditionalGeneration(vision_tower_cfg)
+        self.vision_tower.eval()
+    
     def forward(
         self,
         images: Union[Image.Image, torch.Tensor, List[Image.Image]],
@@ -78,32 +73,39 @@ class Blip2VisionTower(nn.Module):
         # do_rescale 결정
         first = images[0]
         do_rescale = not isinstance(first, torch.Tensor)
-        # processor 호출 (이미지+텍스트)
         inputs = self.processor(
             images=images,
             text=prompts,
             return_tensors="pt",
             do_rescale=do_rescale
-        ).to(self.device)
-        # 이미지 특징 추출
-        vision_outputs = self.model.vision_model(
-            pixel_values=inputs.pixel_values,
-            output_hidden_states=True,
-            return_dict=True
-        )
-        img_feats = vision_outputs.hidden_states[-1]
-        
-        # 캡션 생성
-        gen_ids = self.model.generate(
-            **inputs,
-            max_length=max_length,
-            num_beams=num_beams
-        )
-        captions = self.processor.batch_decode(
-            gen_ids,
-            skip_special_tokens=skip_special_tokens
-        )
-        return {"image_features": img_feats, "captions": captions}
+        ).to(self.vision_tower.device)
+        image_features =[]
+        captions = []
+        if type(images) is list:
+            for image in images:
+                # 이미지 특징 추출
+                vision_outputs = self.vision_tower.vision_model(
+                    pixel_values=inputs.pixel_values,
+                    output_hidden_states=True,
+                    return_dict=True
+                )
+                img_feats = vision_outputs.hidden_states[-1]
+                image_features.append(img_feats)
+                # 캡션 생성
+                gen_ids = self.vision_tower.generate(
+                    **inputs,
+                    max_new_tokens=max_length,
+                    num_beams=num_beams
+                )
+                captions = self.processor.batch_decode(
+                    gen_ids,
+                    skip_special_tokens=skip_special_tokens
+                )
+                image_features.append(img_feats)
+                captions.append(captions)
+                
+        return  image_features, captions
+    
 
     @property
     def hidden_size(self) -> int:
