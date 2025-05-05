@@ -23,17 +23,17 @@ def test_blip2_vision_tower():
     # 2) 모델 초기화
     tower = Blip2VisionTower(
         model_name="Salesforce/blip2-opt-2.7b", 
-        freeze=True
+        vision_tower_cfg=None,
     )
     tower.eval()
 
     # 3) forward 호출
     with torch.no_grad():
-        features, captions = tower([test_img],[texts])
+        features = tower([test_img],[texts])
 
     # 4) 결과 출력
-    print(f"■ features.shape: {features.shape}")   # (1, seq_len, hidden_size)
-    print(f"■ captions     : {captions}")         # ["...생성된 캡션..."]
+    print(f"■ features.shape: ",features["image_features"].shape)   # (1, seq_len, hidden_size)
+    print(f"■ captions     : {features['captions']}")         # ["...생성된 캡션..."]
 
 if __name__ == "__main__":
     test_blip2_vision_tower()

@@ -71,7 +71,8 @@ class ModelArguments:
     tune_mm_vision_resampler: bool = field(default=False)
     vision_tower: Optional[str] = field(default=None)
     vision_tower_pretrained: Optional[str] = field(default=None)  # default to the last layer
-    vision_prompt: Optional[str] = field(default="Describe this image shortly.")                # Added
+    # Added
+    vision_prompt: Optional[str] = field(default="Describe this image shortly.")                
     unfreeze_mm_vision_tower: bool = field(default=False)
     unfreeze_language_model: bool = field(default=False)
     mm_vision_select_layer: Optional[int] = field(default=-1)  # default to the last layer
