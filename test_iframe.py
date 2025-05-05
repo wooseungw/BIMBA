@@ -1,3 +1,6 @@
+import os
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+
 from llava.model.builder import load_pretrained_model
 from llava.mm_utils import get_model_name_from_path, process_images, tokenizer_image_token
 from llava.constants import IMAGE_TOKEN_INDEX, DEFAULT_IMAGE_TOKEN, DEFAULT_IM_START_TOKEN, DEFAULT_IM_END_TOKEN, IGNORE_INDEX
@@ -15,56 +18,41 @@ import av
 import numpy as np
 from decord import VideoReader, cpu
 
-def load_video_keyframes(video_path, max_frames_num, force_sample=False):
-    """
-    PyAV을 사용해 I-Frame만 추출합니다.
-    - video_path: 비디오 파일 경로
-    - max_frames_num: 최대 키프레임 개수 (0이면 빈 배열)
-    - force_sample: 키프레임 수가 max_frames_num 초과 시 균등 샘플링 여부
-    Returns:
-      frames: (N, H, W, 3) NumPy 배열
-      frame_time: "0.00s,1.23s,..." 형태 문자열
-      video_time: 전체 영상 길이 (초)
-    """
+
+def load_video(video_path, max_frames_num, force_sample=False):
     if max_frames_num == 0:
         return np.zeros((1, 336, 336, 3)), "", 0.0
 
-    # 1) 컨테이너 열기 & 비디오 스트림 선택
     container = av.open(video_path)
     stream = container.streams.video[0]
     stream.thread_type = "AUTO"
 
-    # 2) 전체 프레임 수와 재생시간 계산 (FFmpeg timestamp 사용)
-    total_duration = float(stream.duration * stream.time_base)  # 초 단위
-    video_time = total_duration
+    # 전체 재생시간 (초)
+    video_time = float(stream.duration * stream.time_base)
 
     keyframes = []
     timestamps = []
-    # 3) 패킷 단위로 순회하며 키프레임만 디코딩
     for packet in container.demux(stream):
         if not packet.is_keyframe:
             continue
         for frame in packet.decode():
-            # RGB24 포맷으로 변환
             img = frame.to_ndarray(format="rgb24")
             keyframes.append(img)
-            # frame.pts * time_base = presentation time (초)
-            timestamps.append(frame.pts * stream.time_base)
-        # 너무 많으면 중단
+            # Fraction → float으로 변환
+            time_sec = float(frame.pts * stream.time_base)
+            timestamps.append(time_sec)
         if len(keyframes) >= max_frames_num:
             break
 
-    # 4) 강제 샘플링 옵션: 균등하게 max_frames_num 개만 남기기
     if force_sample and len(keyframes) > max_frames_num:
         idxs = np.linspace(0, len(keyframes)-1, max_frames_num, dtype=int)
         keyframes = [keyframes[i] for i in idxs]
         timestamps = [timestamps[i] for i in idxs]
-
-    # 5) 문자열 포맷으로 타임스탬프 생성
+    print(len(keyframes),keyframes[0].shape)  # 이제 float이므로 포맷 가능
+    print(timestamps)
+    # 이제 float이므로 포맷 가능
     frame_time = ",".join([f"{t:.2f}s" for t in timestamps])
-
-    # 6) NumPy 배열로 변환
-    frames = np.stack(keyframes, axis=0)  # (N, H, W, 3)
+    frames = np.stack(keyframes, axis=0)
 
     return frames, frame_time, video_time
 
@@ -89,7 +77,7 @@ model.eval()
 
 video_path = "assets/example.mp4"
 max_frames_num = 64
-video,frame_time,video_time = load_video_keyframes(video_path, max_frames_num, 1, force_sample=True)
+video,frame_time,video_time = load_video(video_path, max_frames_num, force_sample=True)
 video = image_processor.preprocess(video, return_tensors="pt")["pixel_values"].cuda().bfloat16()
 video = [video]
 conv_template = "qwen_1_5"
