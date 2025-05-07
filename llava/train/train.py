@@ -41,6 +41,7 @@ from transformers import AutoConfig
 from torch.utils.data import Dataset
 from llava.constants import IGNORE_INDEX, DEFAULT_IMAGE_TOKEN, DEFAULT_IM_START_TOKEN, DEFAULT_IM_END_TOKEN, IMAGE_TOKEN_INDEX
 from llava.train.llava_trainer import LLaVATrainer
+from llava.model.language_model.llava_qwen import *
 
 from llava import conversation as conversation_lib
 from llava.model import *
@@ -962,9 +963,9 @@ class LazySupervisedDataset(Dataset):
         self.tokenizer = tokenizer
         self.list_data_dict = []
 
-        rank0_print(f"yt_metadata: /mnt/meg/mmiemon/datasets/YTScam/YTscam_metadata_frames_32.json")
-        with open('/mnt/meg/mmiemon/datasets/YTScam/YTscam_metadata_frames_32.json', 'r') as f:
-            self.yt_metadata = json.load(f)
+        # rank0_print(f"yt_metadata: /mnt/meg/mmiemon/datasets/YTScam/YTscam_metadata_frames_32.json")
+        # with open('/mnt/meg/mmiemon/datasets/YTScam/YTscam_metadata_frames_32.json', 'r') as f:
+        #     self.yt_metadata = json.load(f)
         # if 'yt_scam' in data_path and '100f' in data_path:
         #     rank0_print(f"yt_metadata: /mnt/meg/mmiemon/datasets/YTScam/YTscam_metadata_frames_100.json")
         #     with open('/mnt/meg/mmiemon/datasets/YTScam/YTscam_metadata_frames_100.json', 'r') as f:
