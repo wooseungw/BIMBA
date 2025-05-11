@@ -8,13 +8,57 @@ from transformers.image_transforms import (
     resize,
     to_channel_dimension_format,
 )
-from transformers import Blip2Processor, Blip2ForConditionalGeneration, Blip2Config
+from transformers import AutoTokenizer, BlipImageProcessor, Blip2Processor, Blip2ForConditionalGeneration, Blip2Config
 from PIL import Image
 from typing import Union, List
 from llava.utils import rank0_print
 
 
-
+class Blip2TextTower(nn.Module):
+    """
+    BLIP-2 Text Tower 모듈
+    사용 예시:
+        tower = Blip2TextTower(
+            model_name="Salesforce/blip2-flan-t5-xl",
+            freeze=True
+        )
+        texts = ["A photo of a cat.", "A photo of a dog."]
+        text_embs = tower(texts)
+        # text_embs: torch.Tensor [B, seq_len_txt, hidden_size]
+    """
+    def __init__(
+        self,
+        model_name: str,
+        freeze: bool = False,
+        delay_load=False
+    ):
+        super().__init__()
+        
+        self.model_name = model_name
+        self.text_processor = AutoTokenizer.from_pretrained(model_name)
+        self.text_tower = Blip2ForConditionalGeneration.from_pretrained(model_name, device_map="auto")
+        
+        if freeze:
+            for param in self.text_tower.parameters():
+                param.requires_grad = False
+            rank0_print("BLIP-2 Text Tower is frozen.")
+    
+    def forward(self, texts: Union[str, List[str]]):
+        # 리스트 일관화
+        if not isinstance(texts, (list, tuple)):
+            texts = [texts]
+        
+        inputs = self.text_processor(
+            texts,
+            return_tensors="pt",
+            padding=True,
+            truncation=True,
+            max_length=32
+        ).to(self.text_tower.device)
+        
+        outputs = self.text_tower(**inputs)
+        
+        return outputs.last_hidden_state
 
 class Blip2VisionTower(nn.Module):
     """
@@ -42,8 +86,20 @@ class Blip2VisionTower(nn.Module):
         super().__init__()
         
         self.vision_tower_name = vision_tower
-        self.config = Blip2Config()
-        self.processor = Blip2Processor.from_pretrained(self.vision_tower_name)
+        if self.vision_tower_name == "Salesforce/blip2-flan-t5-xl":
+            self.text_processor = AutoTokenizer.from_pretrained("google/flan-t5-xl")
+        elif self.vision_tower_name == "Salesforce/blip2-flan-t5-xxl":
+            self.text_processor = AutoTokenizer.from_pretrained("google/flan-t5-xxl")
+        elif self.vision_tower_name == "Salesforce/blip2-opt-2.7b":
+            self.text_processor = AutoTokenizer.from_pretrained("facebook/opt-2.7b")
+        elif self.vision_tower_name == "Salesforce/blip2-opt-6.7b":
+            self.text_processor = AutoTokenizer.from_pretrained("facebook/opt-6.7b")
+        
+        self.img_processor = BlipImageProcessor.from_pretrained(
+            self.vision_tower_name,
+        )
+        
+        self.processor = Blip2Processor(self.img_processor, self.text_processor)
         if vision_tower:
             self.vision_tower = Blip2ForConditionalGeneration.from_pretrained(self.vision_tower_name, device_map="auto")
         else:
@@ -89,7 +145,7 @@ class Blip2VisionTower(nn.Module):
                     output_hidden_states=True,
                     return_dict=True
                 )
-                img_feats = vision_outputs.hidden_states[-1]
+                img_feats = vision_outputs.hidden_states[-1][1:, :, :]
                 image_features.append(img_feats)
                 # 캡션 생성
                 gen_ids = self.vision_tower.generate(
