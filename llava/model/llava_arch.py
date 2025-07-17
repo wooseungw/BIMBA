@@ -724,26 +724,32 @@ class LlavaMetaForCausalLM(ABC):
             split_sizes = [image.shape[0] for image in images_list]
             print("split_sizes:", split_sizes)
             
-            # CaptioningVLM 기능 사용 여부 확인
-            use_captioning = getattr(self.config, "use_captioning_vlm", False)
+            # 먼저 기본 이미지 인코딩 및 풀링 적용
+            encoded_image_features = self.encode_images(concat_images)
+            print("encoded_image_features shape:", encoded_image_features.shape)
+            encoded_image_features = torch.split(encoded_image_features, split_sizes)
             
-            if use_captioning:
-                # CaptioningVLM 방식으로 캡션과 함께 이미지 특징 처리
-                encoded_image_features = []
-                for idx, image in enumerate(images_list):
-                    # 각 이미지/비디오에 대해 개별적으로 처리
-                    v_emb = self.get_model()._get_vision_embeds(image)
-                    
-                    # mm_projector 적용 (get_2dPool 전에 적용)
-                    v_emb = self.get_model().mm_projector(v_emb)
-                    
-                    # 비디오인 경우 공간 풀링 적용
-                    if idx in video_idx_in_batch and getattr(self.config, 'mm_spatial_pool_mode', 'none') != 'none':
-                        v_emb = self.get_2dPool(v_emb, stride=2)
-                    
+            # image_features,all_faster_video_features = self.encode_multimodals(concat_images, video_idx_in_batch, split_sizes)
+            # Initialize all_faster_video_features as empty list for now
+            all_faster_video_features = [0] * len(encoded_image_features)
+
+            # This is a list, each element is [num_images, patch * patch, dim]
+            # rank_print(f"Concat images : {concat_images.shape}")
+            image_features = []
+            for idx, image_feat in enumerate(encoded_image_features):
+                print("After 2dpooling image_feat shape:")
+                if idx in video_idx_in_batch:
+                    image_feat = self.get_2dPool(image_feat)
+                    print("image_features length:",len(image_features))
+                    print("image_feat shape:", image_feat.shape)
+                
+                # CaptioningVLM 기능 사용 여부 확인 (get_2dPool 이후)
+                use_captioning = getattr(self.config, "use_captioning_vlm", False)
+                
+                if use_captioning:
                     # CaptioningVLM 프로세싱 (청크 분할 및 캡션 생성)
                     chunk_num = 4
-                    num_samples, seq_len, dim = v_emb.shape
+                    num_samples, seq_len, dim = image_feat.shape
                     chunk_size = num_samples // chunk_num if num_samples >= chunk_num else 1
                     
                     chunks_with_caption = []
@@ -752,7 +758,7 @@ class LlavaMetaForCausalLM(ABC):
                         end = (j + 1) * chunk_size if j < chunk_num - 1 else num_samples
                         
                         if start < num_samples:
-                            chunk = v_emb[start:end]
+                            chunk = image_feat[start:end]
                             
                             # 뉴라인 토큰 삽입
                             chunk_with_newline = self.get_model().newline_inserter(chunk, self.get_model().image_newline)
@@ -767,27 +773,9 @@ class LlavaMetaForCausalLM(ABC):
                     # 모든 청크 결합
                     if chunks_with_caption:
                         final_features = torch.cat(chunks_with_caption, dim=0)
-                        encoded_image_features.append(final_features.unsqueeze(0))  # 배치 차원 추가
-            else:
-                encoded_image_features = self.encode_images(concat_images)
-                print("encoded_image_features shape:", encoded_image_features.shape)
-                encoded_image_features = torch.split(encoded_image_features, split_sizes)
-            # image_features,all_faster_video_features = self.encode_multimodals(concat_images, video_idx_in_batch, split_sizes)
-            # Initialize all_faster_video_features as empty list for now
-            all_faster_video_features = [0] * len(encoded_image_features)
-
-            # This is a list, each element is [num_images, patch * patch, dim]
-            # rank_print(f"Concat images : {concat_images.shape}")
-            image_features = []
-            for idx, image_feat in enumerate(encoded_image_features):
-                print("After 2dpooling image_feat shape:")
-                if use_captioning:
-                    # CaptioningVLM을 사용한 경우 이미 모든 처리가 완료됨
-                    image_features.append(image_feat.squeeze(0) if image_feat.dim() > 2 else image_feat)
-                elif idx in video_idx_in_batch:
-                    image_features.append(self.get_2dPool(image_feat))
-                    print("image_features length:",len(image_features))
-                    print("image_feat shape:", image_feat.shape)
+                        image_features.append(final_features)
+                    else:
+                        image_features.append(image_feat)
                 else:
                     image_features.append(image_feat)
             # image_features = self.encode_multimodals(concat_images, video_idx_in_batch, split_sizes)
