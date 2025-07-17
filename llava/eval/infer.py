@@ -110,6 +110,12 @@ def run(rank, world_size, args):
     rank0_print(f"Total samples: {num_samples}")
     print(f"Samples in rank {rank}: {len(dataset)}")
 
+    overwrite_config = {"temporal_pooling": args.temporal_pooling}
+    
+    # CaptioningVLM 설정 추가
+    if args.use_captioning_vlm:
+        overwrite_config["use_captioning_vlm"] = True
+    
     tokenizer, model, image_processor, max_length = load_pretrained_model(
                                                         model_path = args.model_path, 
                                                         model_base = args.model_base, 
@@ -117,9 +123,22 @@ def run(rank, world_size, args):
                                                         lora_alpha = args.lora_alpha,
                                                         torch_dtype="bfloat16",
                                                         device_map="auto",
-                                                        overwrite_config = {"temporal_pooling":args.temporal_pooling},
+                                                        overwrite_config = overwrite_config,
                                                         #device_map = {"": torch.device(f"cuda:{rank}")},
                                                     )
+    
+    # CaptioningVLM 설정 적용
+    if args.use_captioning_vlm:
+        if hasattr(model.get_model(), 'system_instruction'):
+            model.get_model().system_instruction = args.captioning_system_instruction
+        if hasattr(model.get_model(), 'captioning_instruction'):
+            model.get_model().captioning_instruction = args.captioning_instruction
+        if hasattr(model.get_model(), 'caption_prompt_template'):
+            model.get_model().caption_prompt_template = [
+                {"role": "system", "content": args.captioning_system_instruction},
+                {"role": "user", "content": args.captioning_instruction},
+            ]
+    
     model.eval()
     #model = model.to(torch.device(rank))
 
@@ -177,6 +196,11 @@ def main():
     parser.add_argument("--conv_template", type=str, default="qwen_1_5")
     parser.add_argument("--use_time_ins", action="store_true")
     parser.add_argument("--lora_alpha", type=int, default=None)
+    
+    # CaptioningVLM 관련 인자
+    parser.add_argument("--use_captioning_vlm", action="store_true", help="Enable CaptioningVLM functionality")
+    parser.add_argument("--captioning_system_instruction", type=str, default="You are a helpful assistant.", help="System instruction for captioning")
+    parser.add_argument("--captioning_instruction", type=str, default="<image> Generate a short descriptive caption for this visual content.", help="Instruction for captioning")
 
     # Data
     parser.add_argument("--dataset_name", type=str, default="VideoMME")

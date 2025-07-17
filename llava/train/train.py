@@ -117,6 +117,11 @@ class ModelArguments:
     delay_load: Optional[bool] = field(default=True)
     add_faster_video: Optional[bool] = field(default=False)
     faster_token_stride: Optional[int] = field(default=10)
+    
+    # CaptioningVLM 관련 설정
+    use_captioning_vlm: Optional[bool] = field(default=True)
+    captioning_system_instruction: Optional[str] = field(default="You are a helpful assistant.")
+    captioning_instruction: Optional[str] = field(default="<image> Generate a short descriptive caption for this visual content.")
 
 
 
@@ -1696,6 +1701,20 @@ def train(attn_implementation=None):
         model.config.add_time_instruction = data_args.add_time_instruction
         model.config.force_sample = data_args.force_sample
         model.config.mm_spatial_pool_stride = model_args.mm_spatial_pool_stride
+        
+        # CaptioningVLM 설정 추가
+        model.config.use_captioning_vlm = model_args.use_captioning_vlm
+        if model_args.use_captioning_vlm:
+            # CaptioningVLM 관련 초기화 설정 업데이트
+            if hasattr(model.get_model(), 'system_instruction'):
+                model.get_model().system_instruction = model_args.captioning_system_instruction
+            if hasattr(model.get_model(), 'captioning_instruction'):
+                model.get_model().captioning_instruction = model_args.captioning_instruction
+            if hasattr(model.get_model(), 'caption_prompt_template'):
+                model.get_model().caption_prompt_template = [
+                    {"role": "system", "content": model_args.captioning_system_instruction},
+                    {"role": "user", "content": model_args.captioning_instruction},
+                ]
 
 
         ### Deciding train which part of the model
