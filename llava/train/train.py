@@ -119,7 +119,7 @@ class ModelArguments:
     faster_token_stride: Optional[int] = field(default=10)
     
     # CaptioningVLM 관련 설정
-    use_captioning_vlm: Optional[bool] = field(default=False)
+    use_captioning_vlm: Optional[bool] = field(default=True)
     captioning_system_instruction: Optional[str] = field(default="You are a helpful assistant.")
     captioning_instruction: Optional[str] = field(default="<image> Generate a short descriptive caption for this visual content.")
 
