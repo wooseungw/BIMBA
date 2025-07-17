@@ -1,17 +1,17 @@
 datasets:
   - json_path: /home/tera/workspace/lcvlm/bimba_fork/DATAS/train/NextQA/0_30_s_nextqa_mc_qa.json
     sampling_strategy: "all"
-  - json_path: /DATAS/train/NextQA/0_30_s_nextqa_oe_qa.json
+  - json_path: /home/tera/workspace/lcvlm/bimba_fork/DATAS/train/NextQA/0_30_s_nextqa_oe_qa.json
     sampling_strategy: "all"
-  - json_path: /DATAS/train/NextQA/30_60_s_nextqa_mc_qa.json
+  - json_path: /home/tera/workspace/lcvlm/bimba_fork/DATAS/train/NextQA/30_60_s_nextqa_mc_qa.json
     sampling_strategy: "all"
-  - json_path: /DATAS/train/NextQA/30_60_s_nextqa_oe_qa.json
+  - json_path: /home/tera/workspace/lcvlm/bimba_fork/DATAS/train/NextQA/30_60_s_nextqa_oe_qa.json
     sampling_strategy: "all"
-  - json_path: /DATAS/train/NextQA/1_2_m_nextqa_mc_qa.json
+  - json_path: /home/tera/workspace/lcvlm/bimba_fork/DATAS/train/NextQA/1_2_m_nextqa_mc_qa.json
     sampling_strategy: "all"
-  - json_path: /DATAS/train/NextQA/1_2_m_nextqa_mc_qa.json
+  - json_path: /home/tera/workspace/lcvlm/bimba_fork/DATAS/train/NextQA/1_2_m_nextqa_mc_qa.json
     sampling_strategy: "all"
-  - json_path: /DATAS/train/NextQA/2_3_m_nextqa_mc_qa.json
+  - json_path: /home/tera/workspace/lcvlm/bimba_fork/DATAS/train/NextQA/2_3_m_nextqa_mc_qa.json
     sampling_strategy: "all"
-  - json_path: /DATAS/train/NextQA/2_3_m_nextqa_mc_qa.json
+  - json_path: /home/tera/workspace/lcvlm/bimba_fork/DATAS/train/NextQA/2_3_m_nextqa_mc_qa.json
     sampling_strategy: "all"
