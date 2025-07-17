@@ -134,10 +134,10 @@ class LlavaMetaModel:
             labels=processed_labels,  # 필수 인자 labels 추가
             attention_mask=prompt_tokens.attention_mask,
             image_features=[v_emb],
-            embed_tokens_fn=self.llm.get_input_embeddings(),
+            embed_tokens_fn=self.get_input_embeddings(),
             image_token_index=IMAGE_TOKEN_INDEX,
             ignore_index=IGNORE_INDEX,
-            max_length=self.config.language_config.max_position_embeddings,
+            max_length=getattr(self.config, 'max_position_embeddings', 4096),
             padding_side=tokenizer.padding_side,
         )
         
@@ -149,7 +149,7 @@ class LlavaMetaModel:
                 device=inp_emb.device
             )
             
-            outputs = self.llm.generate(
+            outputs = self.generate(
                 inputs_embeds=inp_emb,
                 attention_mask=attention_mask,
                 position_ids=pos_ids,
@@ -178,7 +178,7 @@ class LlavaMetaModel:
         
         # 생성된 input_ids를 바로 임베딩으로 변환
         if caption_only_ids.shape[1] > 0:
-            caption_embeds = self.llm.get_input_embeddings()(caption_only_ids.long())
+            caption_embeds = self.get_input_embeddings()(caption_only_ids.long())
         else:
             # 빈 캡션인 경우 빈 임베딩 텐서 생성
             caption_embeds = torch.empty((1, 0, self.config.hidden_size), dtype=v_emb.dtype, device=v_emb.device)
@@ -679,10 +679,19 @@ class LlavaMetaForCausalLM(ABC):
         image_feature cat shape: torch.Size([3584, 896, 15]) 14 + 1, 1 is the newline token
         image_feature final shape: torch.Size([13440, 3584]) seq_len,features = 
         '''
-        resize_h = int(math.sqrt(image_feature.shape[1]))
         num_frames = image_feature.shape[0]
-        # print("image_feature shape:", image_feature.shape)
+        num_patches = image_feature.shape[1]
         feature_dim = image_feature.shape[-1]
+        
+        # 안전한 resize_h 계산
+        resize_h = int(math.sqrt(num_patches))
+        if resize_h * resize_h != num_patches:
+            print(f"Warning: num_patches ({num_patches}) is not a perfect square. Using resize_h={resize_h}")
+            # 가장 가까운 제곱수로 조정하거나 에러 방지를 위해 flatten 방식 사용
+            image_feature = image_feature.flatten(0, 1)  # (num_frames * num_patches, hidden_size)
+            return image_feature
+        
+        # print("image_feature shape:", image_feature.shape)
         # print("feature_dim:", feature_dim)
 
         image_feature = image_feature.view(num_frames, 1, resize_h, resize_h, -1) 
