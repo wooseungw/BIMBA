@@ -821,6 +821,8 @@ class LlavaMetaForCausalLM(ABC):
                     # 모든 청크 결합
                     if chunks_with_caption:
                         final_features = torch.cat(chunks_with_caption, dim=0)
+                        # CaptioningVLM 처리 후에는 flatten 처리하여 spatial 처리를 건너뛰기 위해 표시
+                        final_features._captioning_processed = True
                         image_features.append(final_features)
                     else:
                         image_features.append(image_feat)
@@ -839,6 +841,11 @@ class LlavaMetaForCausalLM(ABC):
             elif mm_patch_merge_type.startswith("spatial"):
                 new_image_features = []
                 for image_idx, image_feature in enumerate(image_features):
+                    # CaptioningVLM 처리된 텐서는 이미 flatten되어 있으므로 바로 추가
+                    if hasattr(image_feature, '_captioning_processed') and image_feature._captioning_processed:
+                        new_image_features.append(image_feature)
+                        continue
+                        
                     # FIXME: now assume the image is square, and split to 2x2 patches
                     # num_patches = h * w, where h = w = sqrt(num_patches)
                     # currently image_feature is a tensor of shape (4, num_patches, hidden_size)
@@ -1036,12 +1043,22 @@ class LlavaMetaForCausalLM(ABC):
             cur_new_input_embeds = [x.to(self.device) for x in cur_new_input_embeds]
 
             # import pdb; pdb.set_trace()
-            # 차원 확인 및 조정
+            # 차원 확인 및 조정 - 모든 텐서를 2D로 통일
             for i, emb in enumerate(cur_new_input_embeds):
                 if emb.dim() == 1:
                     cur_new_input_embeds[i] = emb.unsqueeze(0)
                 elif emb.dim() == 3:
-                    cur_new_input_embeds[i] = emb.squeeze(0)
+                    # 3D 텐서를 2D로 flatten
+                    cur_new_input_embeds[i] = emb.view(-1, emb.shape[-1])
+                elif emb.dim() > 3:
+                    # 더 높은 차원의 텐서도 2D로 flatten
+                    cur_new_input_embeds[i] = emb.view(-1, emb.shape[-1])
+            
+            # 모든 텐서가 2D인지 확인
+            for i, emb in enumerate(cur_new_input_embeds):
+                if emb.dim() != 2:
+                    print(f"Warning: tensor {i} has unexpected dimension {emb.dim()}, shape: {emb.shape}")
+                    cur_new_input_embeds[i] = emb.view(-1, emb.shape[-1])
             
             cur_new_input_embeds = torch.cat(cur_new_input_embeds)
             cur_new_labels = torch.cat(cur_new_labels)

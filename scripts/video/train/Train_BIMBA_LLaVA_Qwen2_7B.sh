@@ -58,7 +58,7 @@ deepspeed --master_port 30000 \
     --evaluation_strategy "no" \
     --save_strategy "steps" \
     --save_steps 500 \
-    --save_total_limit 100 \
+    --save_total_limit 1 \
     --learning_rate 1e-6 \
     --weight_decay 0. \
     --warmup_ratio 0.03 \
