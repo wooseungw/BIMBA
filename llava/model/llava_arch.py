@@ -89,105 +89,6 @@ class LlavaMetaModel:
         # 모든 프레임을 하나로 연결
         return torch.cat(result, dim=0)  # (num_frames * (seq_len + 1), dim)
     
-    @torch.no_grad()
-    def _generate_captions_for_features(self, v_emb: torch.FloatTensor, tokenizer):
-        """
-        하나의 v_emb에 대한 캡션생성 메서드.
-        v_emb: 비주얼 특징 텐서 ((1, seq_len' + newlinetoken_num, dim')
-        tokenizer: 토크나이저 객체
-        returns: 임베딩된 캡션 텐서 (caption_length, dim)
-        """
-        # 입력 텐서 차원 확인 및 조정
-        if v_emb.dim() == 2:  # (seq_len, dim) 형태인 경우
-            v_emb = v_emb.unsqueeze(0)  # (1, seq_len, dim)로 변환
-        
-        # 훈련 상태 저장
-        training_state = self.training
-        self.eval()
-        
-        # 프롬프트 토큰화
-        prompt_text = tokenizer.apply_chat_template(
-            self.caption_prompt_template,
-            tokenize=False,
-            return_tensors=None
-        )
-
-        prompt_tokens = tokenizer(
-            prompt_text, 
-            return_tensors="pt", 
-            padding=True
-        ).to(v_emb.device)
-
-        # 입력 ID가 Long 타입인지 확인
-        prompt_tokens.input_ids = prompt_tokens.input_ids.long()
-        # 수정: prompt_tokens 객체 자체가 아닌 input_ids 텐서를 전달
-        processed_input_ids = self.preprocess_image_tokens(prompt_tokens.input_ids)
-        
-        # Dummy labels 준비 - 오류 수정: 필수 인자 추가, _replace_image_tokens_with_features에서 labels를 사용함
-        # 캡션 생성 단계에서는 레이블이 필요하지 않으므로 무시 인덱스(-100)로 설정
-        processed_labels = torch.full_like(processed_input_ids, IGNORE_INDEX)
-    
-        # 프롬프트 임베딩
-        
-        inp_emb, pad_lbl, pad_mask, pos_ids = self._replace_image_tokens_with_features(
-            input_ids=processed_input_ids,
-            labels=processed_labels,  # 필수 인자 labels 추가
-            attention_mask=prompt_tokens.attention_mask,
-            image_features=[v_emb],
-            embed_tokens_fn=self.get_input_embeddings(),
-            image_token_index=IMAGE_TOKEN_INDEX,
-            ignore_index=IGNORE_INDEX,
-            max_length=getattr(self.config, 'max_position_embeddings', 4096),
-            padding_side=tokenizer.padding_side,
-        )
-        
-        # 캡션 생성
-        with torch.no_grad():
-            attention_mask = torch.ones(
-                inp_emb.shape[:2], 
-                dtype=torch.long, 
-                device=inp_emb.device
-            )
-            
-            outputs = self.generate(
-                inputs_embeds=inp_emb,
-                attention_mask=attention_mask,
-                position_ids=pos_ids,
-                max_new_tokens=30,
-                min_new_tokens=10,
-                num_beams=3,
-                early_stopping=True,
-                do_sample=True,
-                temperature=0.1,
-                top_p=0.9,
-                return_dict_in_generate=True,
-            )
-        
-        # 프롬프트 길이 계산
-        prompt_len = processed_input_ids.shape[1] 
-        
-        # 생성된 input_ids에서 프롬프트 이후 부분만 사용하여 바로 임베딩 변환
-        if outputs.sequences.shape[1] > prompt_len:
-            caption_only_ids = outputs.sequences[:, prompt_len:]
-            # 디코딩은 디버깅용으로만 사용 (실제 처리에서는 사용하지 않음)
-            # caption_text = tokenizer.decode(caption_only_ids[0], skip_special_tokens=True)
-            # print(f"생성된 캡션: {caption_text}")
-        else:
-            # 빈 캡션인 경우 빈 텐서 생성
-            caption_only_ids = torch.empty((1, 0), dtype=torch.long, device=v_emb.device)
-        
-        # 생성된 input_ids를 바로 임베딩으로 변환
-        if caption_only_ids.shape[1] > 0:
-            caption_embeds = self.get_input_embeddings()(caption_only_ids.long())
-        else:
-            # 빈 캡션인 경우 빈 임베딩 텐서 생성
-            caption_embeds = torch.empty((1, 0, self.config.hidden_size), dtype=v_emb.dtype, device=v_emb.device)
-        
-        # 원래 훈련 상태로 복원
-        self.train(training_state)
-        
-        # 배치 차원 제거하고 반환
-        return caption_embeds.squeeze(0)  # (caption_length, dim)
     
     def _get_vision_embeds(self, pixel_values):
         """비전 인코딩"""
@@ -407,6 +308,106 @@ class LlavaMetaForCausalLM(ABC):
 
     def get_vision_tower(self):
         return self.get_model().get_vision_tower()
+    
+    @torch.no_grad()
+    def _generate_captions_for_features(self, v_emb: torch.FloatTensor, tokenizer):
+        """
+        하나의 v_emb에 대한 캡션생성 메서드.
+        v_emb: 비주얼 특징 텐서 ((1, seq_len' + newlinetoken_num, dim')
+        tokenizer: 토크나이저 객체
+        returns: 임베딩된 캡션 텐서 (caption_length, dim)
+        """
+        # 입력 텐서 차원 확인 및 조정
+        if v_emb.dim() == 2:  # (seq_len, dim) 형태인 경우
+            v_emb = v_emb.unsqueeze(0)  # (1, seq_len, dim)로 변환
+        
+        # 훈련 상태 저장
+        training_state = self.training
+        self.eval()
+        
+        # 프롬프트 토큰화
+        prompt_text = tokenizer.apply_chat_template(
+            self.get_model().caption_prompt_template,
+            tokenize=False,
+            return_tensors=None
+        )
+
+        prompt_tokens = tokenizer(
+            prompt_text, 
+            return_tensors="pt", 
+            padding=True
+        ).to(v_emb.device)
+
+        # 입력 ID가 Long 타입인지 확인
+        prompt_tokens.input_ids = prompt_tokens.input_ids.long()
+        # 수정: prompt_tokens 객체 자체가 아닌 input_ids 텐서를 전달
+        processed_input_ids = self.get_model().preprocess_image_tokens(prompt_tokens.input_ids)
+        
+        # Dummy labels 준비 - 오류 수정: 필수 인자 추가, _replace_image_tokens_with_features에서 labels를 사용함
+        # 캡션 생성 단계에서는 레이블이 필요하지 않으므로 무시 인덱스(-100)로 설정
+        processed_labels = torch.full_like(processed_input_ids, IGNORE_INDEX)
+    
+        # 프롬프트 임베딩
+        
+        inp_emb, pad_lbl, pad_mask, pos_ids = self.get_model()._replace_image_tokens_with_features(
+            input_ids=processed_input_ids,
+            labels=processed_labels,  # 필수 인자 labels 추가
+            attention_mask=prompt_tokens.attention_mask,
+            image_features=[v_emb],
+            embed_tokens_fn=self.get_model().get_input_embeddings(),
+            image_token_index=IMAGE_TOKEN_INDEX,
+            ignore_index=IGNORE_INDEX,
+            max_length=getattr(self.config, 'max_position_embeddings', 4096),
+            padding_side=tokenizer.padding_side,
+        )
+        
+        # 캡션 생성
+        with torch.no_grad():
+            attention_mask = torch.ones(
+                inp_emb.shape[:2], 
+                dtype=torch.long, 
+                device=inp_emb.device
+            )
+            
+            outputs = self.generate(
+                inputs_embeds=inp_emb,
+                attention_mask=attention_mask,
+                position_ids=pos_ids,
+                max_new_tokens=30,
+                min_new_tokens=10,
+                num_beams=3,
+                early_stopping=True,
+                do_sample=True,
+                temperature=0.1,
+                top_p=0.9,
+                return_dict_in_generate=True,
+            )
+        
+        # 프롬프트 길이 계산
+        prompt_len = processed_input_ids.shape[1] 
+        
+        # 생성된 input_ids에서 프롬프트 이후 부분만 사용하여 바로 임베딩 변환
+        if outputs.sequences.shape[1] > prompt_len:
+            caption_only_ids = outputs.sequences[:, prompt_len:]
+            # 디코딩은 디버깅용으로만 사용 (실제 처리에서는 사용하지 않음)
+            # caption_text = tokenizer.decode(caption_only_ids[0], skip_special_tokens=True)
+            # print(f"생성된 캡션: {caption_text}")
+        else:
+            # 빈 캡션인 경우 빈 텐서 생성
+            caption_only_ids = torch.empty((1, 0), dtype=torch.long, device=v_emb.device)
+        
+        # 생성된 input_ids를 바로 임베딩으로 변환
+        if caption_only_ids.shape[1] > 0:
+            caption_embeds = self.get_model().get_input_embeddings()(caption_only_ids.long())
+        else:
+            # 빈 캡션인 경우 빈 임베딩 텐서 생성
+            caption_embeds = torch.empty((1, 0, self.config.hidden_size), dtype=v_emb.dtype, device=v_emb.device)
+        
+        # 원래 훈련 상태로 복원
+        self.train(training_state)
+        
+        # 배치 차원 제거하고 반환
+        return caption_embeds.squeeze(0)  # (caption_length, dim)
 
     def get_2dPool(self, image_feature, stride=2):
         # 입력: (64, 729, 3584)
@@ -520,7 +521,7 @@ class LlavaMetaForCausalLM(ABC):
                     
                     if use_captioning and tokenizer is not None:
                         try:
-                            caption = self.get_model()._generate_captions_for_features(chunk_with_newline, tokenizer)
+                            caption = self._generate_captions_for_features(chunk_with_newline, tokenizer)
                         except Exception as e:
                             # 캡션 생성 실패 시 빈 캡션 생성
                             print(f"Caption generation failed: {e}")
@@ -804,7 +805,7 @@ class LlavaMetaForCausalLM(ABC):
                             
                             if use_captioning and tokenizer is not None:
                                 try:
-                                    caption = self.get_model()._generate_captions_for_features(chunk_with_newline, tokenizer)
+                                    caption = self._generate_captions_for_features(chunk_with_newline, tokenizer)
                                 except Exception as e:
                                     # 캡션 생성 실패 시 빈 캡션 생성
                                     print(f"Caption generation failed: {e}")
@@ -1035,6 +1036,13 @@ class LlavaMetaForCausalLM(ABC):
             cur_new_input_embeds = [x.to(self.device) for x in cur_new_input_embeds]
 
             # import pdb; pdb.set_trace()
+            # 차원 확인 및 조정
+            for i, emb in enumerate(cur_new_input_embeds):
+                if emb.dim() == 1:
+                    cur_new_input_embeds[i] = emb.unsqueeze(0)
+                elif emb.dim() == 3:
+                    cur_new_input_embeds[i] = emb.squeeze(0)
+            
             cur_new_input_embeds = torch.cat(cur_new_input_embeds)
             cur_new_labels = torch.cat(cur_new_labels)
 
