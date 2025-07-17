@@ -20,7 +20,7 @@ alias python=python3
 VISION_MODEL_VERSION="google/siglip-so400m-patch14-384"
 PROMPT_VERSION="qwen_1_5"
 PREV_STAGE_CHECKPOINT="lmms-lab/LLaVA-Video-7B-Qwen2"
-RUN_NAME="Testrun"
+RUN_NAME="withcaption"
 OUTPUT_DIR="work_dirs/${RUN_NAME}"
 
 export WANDB_PROJECT=BIMBA

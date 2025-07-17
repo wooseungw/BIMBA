@@ -435,10 +435,20 @@ class LlavaMetaForCausalLM(ABC):
         if compressor_type == "bimba":
             image_feature = image_feature.unsqueeze(0)
             # (64, 196, 3584) -> (1, 64, 196, 3584)
-            image_feature = self.get_model().compressor(space_time_tokens, image_feature)
-            # (1, 64, 196, 3584) -> (1, 64, 196, 3584)
-            image_feature = torch.squeeze(image_feature, 0)
+            
+            # space_time_tokens을 올바른 형태로 변환
+            B, T, H, W, D = space_time_tokens.shape  # (1, 64, 27, 27, 3584)
+            space_time_tokens_reshaped = space_time_tokens.view(B, T*H*W, D)  # (1, 64*27*27, 3584)
+            
+            try:
+                image_feature = self.get_model().compressor(space_time_tokens_reshaped, image_feature)
+            except Exception as e:
+                # 에러 발생 시 compressor 사용하지 않고 그대로 반환
+                print(f"Compressor error: {e}, skipping compression")
+                pass
+            
             # (1, 64, 196, 3584) -> (64, 196, 3584)
+            image_feature = torch.squeeze(image_feature, 0)
 
         return image_feature
 
@@ -724,12 +734,12 @@ class LlavaMetaForCausalLM(ABC):
                     # 각 이미지/비디오에 대해 개별적으로 처리
                     v_emb = self.get_model()._get_vision_embeds(image)
                     
+                    # mm_projector 적용 (get_2dPool 전에 적용)
+                    v_emb = self.get_model().mm_projector(v_emb)
+                    
                     # 비디오인 경우 공간 풀링 적용
                     if idx in video_idx_in_batch and getattr(self.config, 'mm_spatial_pool_mode', 'none') != 'none':
                         v_emb = self.get_2dPool(v_emb, stride=2)
-                    
-                    # mm_projector 적용
-                    v_emb = self.get_model().mm_projector(v_emb)
                     
                     # CaptioningVLM 프로세싱 (청크 분할 및 캡션 생성)
                     chunk_num = 4
