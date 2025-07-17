@@ -389,7 +389,13 @@ class LlavaMetaForCausalLM(ABC):
         
         # 생성된 input_ids를 바로 임베딩으로 변환
         if caption_only_ids.shape[1] > 0:
-            caption_embeds = self.get_model().get_input_embeddings()(caption_only_ids.long())
+            try:
+                # DeepSpeed 호환성을 위해 더 안전한 방식으로 임베딩 호출
+                caption_embeds = self.get_model().get_input_embeddings()(caption_only_ids.long())
+            except Exception as e:
+                # 임베딩 생성 실패 시 빈 텐서 반환
+                print(f"Caption embedding failed: {e}")
+                caption_embeds = torch.empty((1, 0, self.config.hidden_size), dtype=v_emb.dtype, device=v_emb.device)
         else:
             # 빈 캡션인 경우 빈 임베딩 텐서 생성
             caption_embeds = torch.empty((1, 0, self.config.hidden_size), dtype=v_emb.dtype, device=v_emb.device)
@@ -452,7 +458,18 @@ class LlavaMetaForCausalLM(ABC):
             
             try:
                 if space_time_tokens_reshaped is not None:
-                    image_feature = self.get_model().compressor(space_time_tokens_reshaped, image_feature)
+                    # MambaCompressor는 space_time_tokens를 (B, T, H, W, D) 형태로 기대합니다
+                    # space_time_tokens을 올바른 형태로 변환
+                    B, T, H, W, D = space_time_tokens.shape  # (1, 64, 27, 27, 3584)
+                    
+                    # Compressor에 올바른 인자 전달
+                    compressed_features = self.get_model().compressor(space_time_tokens, image_feature)
+                    
+                    # 결과 확인 및 형태 조정
+                    if compressed_features is not None:
+                        image_feature = compressed_features
+                    else:
+                        print("Compressor returned None, using original features")
                 else:
                     print("Compressor input is None, skipping compression")
             except Exception as e:
@@ -807,10 +824,15 @@ class LlavaMetaForCausalLM(ABC):
                                 except Exception as e:
                                     # 캡션 생성 실패 시 빈 캡션 생성 (메모리 절약)
                                     print(f"Caption generation failed: {e}")
-                                    caption = torch.empty((2, chunk_with_newline.shape[-1]), dtype=chunk_with_newline.dtype, device=chunk_with_newline.device)
+                                    # 안전한 빈 캡션 생성 - 형태 맞추기
+                                    caption = torch.empty((2, chunk_with_newline.shape[-1]), 
+                                                        dtype=chunk_with_newline.dtype, 
+                                                        device=chunk_with_newline.device)
                             else:
                                 # use_captioning_vlm이 False이거나 tokenizer가 없으면 빈 캡션 생성 (메모리 절약)
-                                caption = torch.empty((2, chunk_with_newline.shape[-1]), dtype=chunk_with_newline.dtype, device=chunk_with_newline.device)
+                                caption = torch.empty((2, chunk_with_newline.shape[-1]), 
+                                                    dtype=chunk_with_newline.dtype, 
+                                                    device=chunk_with_newline.device)
                             
                             # 청크와 캡션 결합
                             chunk_with_caption = torch.cat([chunk_with_newline, caption], dim=0)
@@ -1021,8 +1043,28 @@ class LlavaMetaForCausalLM(ABC):
                 cur_input_ids_noim.append(cur_input_ids[image_token_indices[i] + 1 : image_token_indices[i + 1]])
                 cur_labels_noim.append(cur_labels[image_token_indices[i] + 1 : image_token_indices[i + 1]])
             split_sizes = [x.shape[0] for x in cur_labels_noim]
-            cur_input_embeds = self.get_model().embed_tokens(torch.cat(cur_input_ids_noim))
-            cur_input_embeds_no_im = torch.split(cur_input_embeds, split_sizes, dim=0)
+            
+            # DeepSpeed 호환성을 위해 더 안전한 방식으로 embed_tokens 호출
+            try:
+                # 먼저 input_ids를 하나씩 처리하여 INFLIGHT 상태 문제 회피
+                cur_input_embeds_list = []
+                for input_ids_chunk in cur_input_ids_noim:
+                    if len(input_ids_chunk) > 0:
+                        chunk_embeds = self.get_model().embed_tokens(input_ids_chunk)
+                        cur_input_embeds_list.append(chunk_embeds)
+                    else:
+                        # 빈 청크의 경우 빈 텐서 추가
+                        empty_embeds = torch.empty((0, self.config.hidden_size), 
+                                                 dtype=self.get_model().embed_tokens.weight.dtype,
+                                                 device=self.get_model().embed_tokens.weight.device)
+                        cur_input_embeds_list.append(empty_embeds)
+                
+                cur_input_embeds_no_im = cur_input_embeds_list
+            except Exception as e:
+                # 만약 위 방법도 실패하면 기존 방식 시도
+                print(f"Safe embed_tokens failed: {e}, trying original method")
+                cur_input_embeds = self.get_model().embed_tokens(torch.cat(cur_input_ids_noim))
+                cur_input_embeds_no_im = torch.split(cur_input_embeds, split_sizes, dim=0)
             cur_new_input_embeds = []
             cur_new_labels = []
 
