@@ -763,12 +763,11 @@ class LlavaMetaForCausalLM(ABC):
                 print("encoded_image_features shape:", encoded_image_features.shape)
                 encoded_image_features = torch.split(encoded_image_features, split_sizes)
             # image_features,all_faster_video_features = self.encode_multimodals(concat_images, video_idx_in_batch, split_sizes)
+            # Initialize all_faster_video_features as empty list for now
+            all_faster_video_features = [0] * len(encoded_image_features)
 
             # This is a list, each element is [num_images, patch * patch, dim]
             # rank_print(f"Concat images : {concat_images.shape}")
-
-            if not use_captioning:
-                encoded_image_features = torch.split(encoded_image_features, split_sizes)
             image_features = []
             for idx, image_feat in enumerate(encoded_image_features):
                 print("After 2dpooling image_feat shape:")
