@@ -1830,6 +1830,10 @@ def train(attn_implementation=None):
         training_args.use_im_start_end = model_args.mm_use_im_start_end
         model.config.mm_use_im_patch_token = model_args.mm_use_im_patch_token
         model.initialize_vision_tokenizer(model_args, tokenizer=tokenizer)
+        
+        # CaptioningVLM을 위한 tokenizer 설정
+        if model_args.use_captioning_vlm:
+            model.get_model().set_tokenizer(tokenizer)
 
     # for n, p in model.named_parameters():
     #     if "compressor" in n:

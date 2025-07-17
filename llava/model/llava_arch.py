@@ -55,12 +55,23 @@ class LlavaMetaModel:
             {"role": "system", "content": self.system_instruction},
             {"role": "user", "content": self.captioning_instruction},
         ]
+        
+        # Tokenizer 저장을 위한 변수 초기화
+        self.captioning_tokenizer = None
 
     def get_vision_tower(self):
         vision_tower = getattr(self, "vision_tower", None)
         if type(vision_tower) is list:
             vision_tower = vision_tower[0]
         return vision_tower
+    
+    def set_tokenizer(self, tokenizer):
+        """CaptioningVLM을 위한 tokenizer 설정"""
+        self.captioning_tokenizer = tokenizer
+    
+    def get_tokenizer(self):
+        """CaptioningVLM을 위한 tokenizer 반환"""
+        return self.captioning_tokenizer
     
     def newline_inserter(self, v_emb, image_newline):
         """뉴라인 토큰을 비전 특징에 삽입"""
@@ -79,10 +90,11 @@ class LlavaMetaModel:
         return torch.cat(result, dim=0)  # (num_frames * (seq_len + 1), dim)
     
     @torch.no_grad()
-    def _generate_captions_for_features(self, v_emb: torch.FloatTensor):
+    def _generate_captions_for_features(self, v_emb: torch.FloatTensor, tokenizer):
         """
         하나의 v_emb에 대한 캡션생성 메서드.
         v_emb: 비주얼 특징 텐서 ((1, seq_len' + newlinetoken_num, dim')
+        tokenizer: 토크나이저 객체
         returns: 임베딩된 캡션 텐서 (caption_length, dim)
         """
         # 입력 텐서 차원 확인 및 조정
@@ -94,13 +106,13 @@ class LlavaMetaModel:
         self.eval()
         
         # 프롬프트 토큰화
-        prompt_text = self.tokenizer.apply_chat_template(
+        prompt_text = tokenizer.apply_chat_template(
             self.caption_prompt_template,
             tokenize=False,
             return_tensors=None
         )
 
-        prompt_tokens = self.tokenizer(
+        prompt_tokens = tokenizer(
             prompt_text, 
             return_tensors="pt", 
             padding=True
@@ -126,7 +138,7 @@ class LlavaMetaModel:
             image_token_index=IMAGE_TOKEN_INDEX,
             ignore_index=IGNORE_INDEX,
             max_length=self.config.language_config.max_position_embeddings,
-            padding_side=self.tokenizer.padding_side,
+            padding_side=tokenizer.padding_side,
         )
         
         # 캡션 생성
@@ -154,20 +166,22 @@ class LlavaMetaModel:
         # 프롬프트 길이 계산
         prompt_len = processed_input_ids.shape[1] 
         
-        # 생성된 텍스트에서 프롬프트 이후 부분만 사용
-        if outputs.sequences.shape[1] > prompt_len + 1:
-            caption_only_ids = outputs.sequences[:, prompt_len + 1:]
-            caption_text = self.tokenizer.decode(caption_only_ids[0], skip_special_tokens=True)
+        # 생성된 input_ids에서 프롬프트 이후 부분만 사용하여 바로 임베딩 변환
+        if outputs.sequences.shape[1] > prompt_len:
+            caption_only_ids = outputs.sequences[:, prompt_len:]
+            # 디코딩은 디버깅용으로만 사용 (실제 처리에서는 사용하지 않음)
+            # caption_text = tokenizer.decode(caption_only_ids[0], skip_special_tokens=True)
+            # print(f"생성된 캡션: {caption_text}")
         else:
-            caption_text = ""
-            caption_only_ids = self.tokenizer(
-                caption_text, return_tensors="pt"
-            ).input_ids.to(v_emb.device).long()  # 명시적으로 long 타입으로 변환
+            # 빈 캡션인 경우 빈 텐서 생성
+            caption_only_ids = torch.empty((1, 0), dtype=torch.long, device=v_emb.device)
         
-        # print(f"생성된 캡션: {caption_text}")
-        
-        # 캡션 토큰을 임베딩으로 변환
-        caption_embeds = self.llm.get_input_embeddings()(caption_only_ids.long())
+        # 생성된 input_ids를 바로 임베딩으로 변환
+        if caption_only_ids.shape[1] > 0:
+            caption_embeds = self.llm.get_input_embeddings()(caption_only_ids.long())
+        else:
+            # 빈 캡션인 경우 빈 임베딩 텐서 생성
+            caption_embeds = torch.empty((1, 0, self.config.hidden_size), dtype=v_emb.dtype, device=v_emb.device)
         
         # 원래 훈련 상태로 복원
         self.train(training_state)
@@ -500,8 +514,20 @@ class LlavaMetaForCausalLM(ABC):
                     # 뉴라인 토큰 삽입
                     chunk_with_newline = self.get_model().newline_inserter(chunk, self.get_model().image_newline)
                     
-                    # 캡션 생성
-                    caption = self.get_model()._generate_captions_for_features(chunk_with_newline)
+                    # 캡션 생성 - use_captioning_vlm 설정과 tokenizer 확인
+                    use_captioning = getattr(self.config, "use_captioning_vlm", False)
+                    tokenizer = self.get_model().get_tokenizer()
+                    
+                    if use_captioning and tokenizer is not None:
+                        try:
+                            caption = self.get_model()._generate_captions_for_features(chunk_with_newline, tokenizer)
+                        except Exception as e:
+                            # 캡션 생성 실패 시 빈 캡션 생성
+                            print(f"Caption generation failed: {e}")
+                            caption = torch.empty((5, chunk_with_newline.shape[-1]), dtype=chunk_with_newline.dtype, device=chunk_with_newline.device)
+                    else:
+                        # use_captioning_vlm이 False이거나 tokenizer가 없으면 빈 캡션 생성
+                        caption = torch.empty((5, chunk_with_newline.shape[-1]), dtype=chunk_with_newline.dtype, device=chunk_with_newline.device)
                     
                     # 청크와 캡션 결합
                     chunk_with_caption = torch.cat([chunk_with_newline, caption], dim=0)
@@ -763,8 +789,20 @@ class LlavaMetaForCausalLM(ABC):
                             # 뉴라인 토큰 삽입
                             chunk_with_newline = self.get_model().newline_inserter(chunk, self.get_model().image_newline)
                             
-                            # 캡션 생성
-                            caption = self.get_model()._generate_captions_for_features(chunk_with_newline)
+                            # 캡션 생성 - use_captioning_vlm 설정과 tokenizer 확인
+                            use_captioning = getattr(self.config, "use_captioning_vlm", False)
+                            tokenizer = self.get_model().get_tokenizer()
+                            
+                            if use_captioning and tokenizer is not None:
+                                try:
+                                    caption = self.get_model()._generate_captions_for_features(chunk_with_newline, tokenizer)
+                                except Exception as e:
+                                    # 캡션 생성 실패 시 빈 캡션 생성
+                                    print(f"Caption generation failed: {e}")
+                                    caption = torch.empty((5, chunk_with_newline.shape[-1]), dtype=chunk_with_newline.dtype, device=chunk_with_newline.device)
+                            else:
+                                # use_captioning_vlm이 False이거나 tokenizer가 없으면 빈 캡션 생성
+                                caption = torch.empty((5, chunk_with_newline.shape[-1]), dtype=chunk_with_newline.dtype, device=chunk_with_newline.device)
                             
                             # 청크와 캡션 결합
                             chunk_with_caption = torch.cat([chunk_with_newline, caption], dim=0)
