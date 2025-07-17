@@ -961,7 +961,6 @@ def preprocess(sources: Sequence[str], tokenizer: transformers.PreTrainedTokeniz
 
     return dict(input_ids=input_ids, labels=targets)
 
-
 class LazySupervisedDataset(Dataset):
     def __init__(self, data_path: str, tokenizer: transformers.PreTrainedTokenizer, data_args: DataArguments):
         super(LazySupervisedDataset, self).__init__()
@@ -1318,6 +1317,7 @@ class LazySupervisedDataset(Dataset):
         data_dict["id"] = self.list_data_dict[i].get("id", i)
 
         return data_dict
+
 
 
 @dataclass
