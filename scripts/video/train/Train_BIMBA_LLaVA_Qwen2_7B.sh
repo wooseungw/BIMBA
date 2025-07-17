@@ -1,9 +1,10 @@
 #!/bin/bash
-
+export CUDA_VISIBLE_DEVICES=1
+export WANDB_API_KEY=9fd21364ed6c1c6677a250972c5e19a931171974
 # Set up the data folder
-IMAGE_FOLDER="XXX"
+IMAGE_FOLDER="./DATAS/train/NextQA/NExTVideo/"
 VIDEO_FOLDER="XXX"
-DATA_YAML="XXX" # e.g exp.yaml, exp_small.yaml
+DATA_YAML="exp_nextqa" # e.g exp.yaml, exp_small.yaml
 
 ############### Prepare Envs #################
 # python3 -m pip install flash-attn --no-build-isolation
