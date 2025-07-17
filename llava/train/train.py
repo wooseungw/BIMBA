@@ -121,7 +121,7 @@ class ModelArguments:
     # CaptioningVLM 관련 설정
     use_captioning_vlm: Optional[bool] = field(default=True)
     captioning_system_instruction: Optional[str] = field(default="You are a helpful assistant.")
-    captioning_instruction: Optional[str] = field(default="<image> Generate a short descriptive caption for this visual content.")
+    captioning_instruction: Optional[str] = field(default="<image> Generate a very short descriptive caption for this visual content.")
 
 
 
