@@ -1,13 +1,15 @@
 #!/bin/bash
-export CUDA_VISIBLE_DEVICES=1
+export CUDA_VISIBLE_DEVICES=0
 export WANDB_API_KEY=9fd21364ed6c1c6677a250972c5e19a931171974
+export PYTHONPATH="$PYTHONPATH:/home/tera/workspace/lcvlm/bimba_fork/llava"
+
 # Set up the data folder
-IMAGE_FOLDER="./DATAS/train/NextQA/NExTVideo/"
-VIDEO_FOLDER="XXX"
-DATA_YAML="exp_nextqa" # e.g exp.yaml, exp_small.yaml
+IMAGE_FOLDER="XXX"
+VIDEO_FOLDER="DATAS/train/NextQA"
+DATA_YAML="scripts/video/train/exp_nextqa.yaml" # e.g exp.yaml, exp_small.yaml
 
 ############### Prepare Envs #################
-# python3 -m pip install flash-attn --no-build-isolation
+# pip install flash_attn==2.3.4
 alias python=python3
 ############### Show Envs ####################
 
@@ -18,7 +20,7 @@ alias python=python3
 VISION_MODEL_VERSION="google/siglip-so400m-patch14-384"
 PROMPT_VERSION="qwen_1_5"
 PREV_STAGE_CHECKPOINT="lmms-lab/LLaVA-Video-7B-Qwen2"
-RUN_NAME="BIMBA_LLaVA_Qwen2_7B"
+RUN_NAME="Testrun"
 OUTPUT_DIR="work_dirs/${RUN_NAME}"
 
 export WANDB_PROJECT=BIMBA
