@@ -53,6 +53,8 @@ def load_pretrained_model(model_path, model_base, model_name, load_8bit=False, l
             kwargs.pop("multimodal")
     else:
         is_multimodal = False
+    
+    kwargs["trust_remote_code"] = True
 
     if "llava" in model_name.lower() or is_multimodal:
         # Load LLaVA model
