@@ -328,7 +328,42 @@ def load_pretrained_model(model_path, model_base, model_name, load_8bit=False, l
             from peft import PeftModel
 
             tokenizer = AutoTokenizer.from_pretrained(model_base, use_fast=False)
-            model = AutoModelForCausalLM.from_pretrained(model_base, torch_dtype=torch.float16, low_cpu_mem_usage=True, device_map="auto", trust_remote_code=True)
+            
+            # model_base의 설정을 확인하여 LLaVA 모델인지 체크
+            try:
+                config = AutoConfig.from_pretrained(model_base)
+                config_type = getattr(config, 'model_type', '')
+                
+                if 'llava' in config_type:
+                    # LLaVA 모델인 경우 적절한 클래스 사용
+                    if 'qwen' in config_type:
+                        from llava.model.language_model.llava_qwen import LlavaQwenForCausalLM
+                        model = LlavaQwenForCausalLM.from_pretrained(model_base, torch_dtype=torch.float16, low_cpu_mem_usage=True, device_map="auto", trust_remote_code=True)
+                    elif 'llama' in config_type:
+                        from llava.model.language_model.llava_llama import LlavaLlamaForCausalLM
+                        model = LlavaLlamaForCausalLM.from_pretrained(model_base, torch_dtype=torch.float16, low_cpu_mem_usage=True, device_map="auto", trust_remote_code=True)
+                    elif 'mistral' in config_type:
+                        from llava.model.language_model.llava_mistral import LlavaMistralForCausalLM
+                        model = LlavaMistralForCausalLM.from_pretrained(model_base, torch_dtype=torch.float16, low_cpu_mem_usage=True, device_map="auto", trust_remote_code=True)
+                    elif 'mixtral' in config_type:
+                        from llava.model.language_model.llava_mixtral import LlavaMixtralForCausalLM
+                        model = LlavaMixtralForCausalLM.from_pretrained(model_base, torch_dtype=torch.float16, low_cpu_mem_usage=True, device_map="auto", trust_remote_code=True)
+                    elif 'gemma' in config_type:
+                        from llava.model.language_model.llava_gemma import LlavaGemmaForCausalLM
+                        model = LlavaGemmaForCausalLM.from_pretrained(model_base, torch_dtype=torch.float16, low_cpu_mem_usage=True, device_map="auto", trust_remote_code=True)
+                    else:
+                        # 기본 AutoModel 시도
+                        model = AutoModelForCausalLM.from_pretrained(model_base, torch_dtype=torch.float16, low_cpu_mem_usage=True, device_map="auto", trust_remote_code=True)
+                else:
+                    # 일반 언어 모델인 경우
+                    model = AutoModelForCausalLM.from_pretrained(model_base, torch_dtype=torch.float16, low_cpu_mem_usage=True, device_map="auto", trust_remote_code=True)
+                    
+            except Exception as e:
+                print(f"Failed to load with config check: {e}")
+                print("Falling back to AutoModelForCausalLM...")
+                # 실패시 기본 방법 시도
+                model = AutoModelForCausalLM.from_pretrained(model_base, torch_dtype=torch.float16, low_cpu_mem_usage=True, device_map="auto", trust_remote_code=True)
+            
             print(f"Loading LoRA weights from {model_path}")
             model = PeftModel.from_pretrained(model, model_path)
             print(f"Merging weights")
