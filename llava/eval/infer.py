@@ -19,6 +19,9 @@ from llava.constants import IMAGE_TOKEN_INDEX, DEFAULT_IMAGE_TOKEN, DEFAULT_IM_S
 from llava.conversation import conv_templates, SeparatorStyle
 from llava.utils import rank0_print
 
+# Auto Registry에 모델 등록을 위해 import
+import llava.model
+
 
 warnings.filterwarnings("ignore")
 
