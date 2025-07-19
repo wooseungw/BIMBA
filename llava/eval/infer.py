@@ -198,7 +198,7 @@ def run(rank, world_size, args):
         else:
             video_path = os.path.join(args.video_root, sample["video"])
             video,frame_time,video_time = load_video(video_path, args.max_frames_num, fps=1, force_sample=True)
-            video = image_processor.preprocess(video, return_tensors="pt")["pixel_values"].cuda().bfloat16()
+            video = image_processor.preprocess(video, return_tensors="pt")["pixel_values"].cuda().half()  # bfloat16() -> half()로 변경
             video = [video]
             if args.use_time_ins:
                 prompt_question = get_prompt(args.dataset_name, sample, video_time=video_time, num_frames=args.max_frames_num, frame_time=frame_time)
