@@ -168,6 +168,23 @@ def run(rank, world_size, args):
                 {"role": "user", "content": args.captioning_instruction},
             ]
     
+    # image_processor가 None인 경우 vision tower에서 가져오기
+    if image_processor is None:
+        print("image_processor is None, trying to get from vision tower...")
+        try:
+            vision_tower = model.get_vision_tower()
+            if vision_tower is not None:
+                image_processor = vision_tower.image_processor
+                print(f"Got image_processor from vision tower: {type(image_processor)}")
+            else:
+                print("Vision tower is None, creating default image processor...")
+                from transformers import AutoImageProcessor
+                image_processor = AutoImageProcessor.from_pretrained("google/siglip-so400m-patch14-384")
+        except Exception as e:
+            print(f"Failed to get image processor: {e}")
+            from transformers import AutoImageProcessor
+            image_processor = AutoImageProcessor.from_pretrained("google/siglip-so400m-patch14-384")
+    
     model.eval()
     #model = model.to(torch.device(rank))
 
