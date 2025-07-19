@@ -19,8 +19,25 @@ from llava.constants import IMAGE_TOKEN_INDEX, DEFAULT_IMAGE_TOKEN, DEFAULT_IM_S
 from llava.conversation import conv_templates, SeparatorStyle
 from llava.utils import rank0_print
 
-# Auto Registry에 모델 등록을 위해 import
-import llava.model
+# Auto Registry에 모든 모델 클래스 등록을 위해 import
+from llava.model.language_model.llava_qwen import LlavaQwenConfig, LlavaQwenForCausalLM
+from llava.model.language_model.llava_llama import LlavaConfig, LlavaLlamaForCausalLM
+from llava.model.language_model.llava_mistral import LlavaMistralConfig, LlavaMistralForCausalLM
+from llava.model.language_model.llava_mixtral import LlavaMixtralConfig, LlavaMixtralForCausalLM
+from llava.model.language_model.llava_gemma import LlavaGemmaConfig, LlavaGemmaForCausalLM
+from transformers import AutoConfig, AutoModelForCausalLM
+
+# 명시적으로 모든 설정 등록
+AutoConfig.register("llava_qwen", LlavaQwenConfig)
+AutoModelForCausalLM.register(LlavaQwenConfig, LlavaQwenForCausalLM)
+AutoConfig.register("llava_llama", LlavaConfig)
+AutoModelForCausalLM.register(LlavaConfig, LlavaLlamaForCausalLM)
+AutoConfig.register("llava_mistral", LlavaMistralConfig)
+AutoModelForCausalLM.register(LlavaMistralConfig, LlavaMistralForCausalLM)
+AutoConfig.register("llava_mixtral", LlavaMixtralConfig)
+AutoModelForCausalLM.register(LlavaMixtralConfig, LlavaMixtralForCausalLM)
+AutoConfig.register("llava_gemma", LlavaGemmaConfig)
+AutoModelForCausalLM.register(LlavaGemmaConfig, LlavaGemmaForCausalLM)
 
 
 warnings.filterwarnings("ignore")
