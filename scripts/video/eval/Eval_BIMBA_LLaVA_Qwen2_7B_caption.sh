@@ -1,10 +1,12 @@
-
+export CUDA_VISIBLE_DEVICES=1
+export WANDB_API_KEY=9fd21364ed6c1c6677a250972c5e19a931171974
+export PYTHONPATH="$PYTHONPATH:/home/tera/workspace/lcvlm/bimba_fork/llava"
 
 model_path="checkpoints/BIMBA-LLaVA-Qwen2-7B"
 model_base="lmms-lab/LLaVA-Video-7B-Qwen2"
 model_name="withcaption"
 
-results_dir=results/BIMBA-LLaVA-Qwen2-7B_wcaption
+results_dir=results/BIMBA-LLaVA-Qwen2-7B_caption
 
 dataset_name=VideoMME
 python llava/eval/infer.py \
