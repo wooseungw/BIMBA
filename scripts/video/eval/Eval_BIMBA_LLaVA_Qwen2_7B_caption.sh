@@ -4,7 +4,7 @@ export PYTHONPATH="$PYTHONPATH:/home/tera/workspace/lcvlm/bimba_fork/llava"
 
 model_path="work_dirs/withcaption"
 model_base="lmms-lab/LLaVA-Video-7B-Qwen2"  # LoRA가 아닌 경우 주석 처리
-model_name="withcaption"
+model_name="withcaption/checkpoint-17000"
 
 results_dir=results/BIMBA-LLaVA-Qwen2-7B_caption
 
