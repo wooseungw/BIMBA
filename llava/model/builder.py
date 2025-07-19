@@ -20,6 +20,7 @@ import shutil
 from transformers import AutoTokenizer, AutoModelForCausalLM, AutoConfig, BitsAndBytesConfig
 import torch
 from llava.model import *
+from llava.model.language_model.llava_qwen import LlavaQwenForCausalLM
 from llava.constants import DEFAULT_IMAGE_PATCH_TOKEN, DEFAULT_IM_START_TOKEN, DEFAULT_IM_END_TOKEN
 from llava.utils import rank0_print
 
@@ -106,7 +107,7 @@ def load_pretrained_model(model_path, model_base, model_name, load_8bit=False, l
                     saved_config = LlavaQwenConfig.from_pretrained(model_path)
                     if hasattr(saved_config, "compressor_type"):
                         llava_cfg.compressor_type = saved_config.compressor_type
-                    model = LlavaQwenForCausalLM.from_pretrained(model_base, low_cpu_mem_usage=True, attn_implementation=attn_implementation, config=llava_cfg, **kwargs, trust_remote_code=True)
+                    model = LlavaQwenForCausalLM.from_pretrained(model_base, low_cpu_mem_usage=True, attn_implementation=attn_implementation, config=llava_cfg, **kwargs)
                     
                     # from llava.model.language_model.llava_qwen import LlavaQwenConfig
                     # if overwrite_config is not None:
