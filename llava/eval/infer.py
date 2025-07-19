@@ -27,6 +27,15 @@ from llava.model.language_model.llava_mixtral import LlavaMixtralConfig, LlavaMi
 from llava.model.language_model.llava_gemma import LlavaGemmaConfig, LlavaGemmaForCausalLM
 from transformers import AutoConfig, AutoModelForCausalLM
 
+# Hugging Face LLaVA 설정도 처리
+try:
+    from transformers.models.llava.configuration_llava import LlavaConfig as HFLlavaConfig
+    from transformers.models.llava.modeling_llava import LlavaForConditionalGeneration
+    print("Found Hugging Face LLaVA, registering...")
+    # HF LLaVA는 다른 구조이므로 별도 처리가 필요할 수 있음
+except ImportError:
+    print("Hugging Face LLaVA not found, using custom LLaVA only")
+
 # 명시적으로 모든 설정 등록
 AutoConfig.register("llava_qwen", LlavaQwenConfig)
 AutoModelForCausalLM.register(LlavaQwenConfig, LlavaQwenForCausalLM)

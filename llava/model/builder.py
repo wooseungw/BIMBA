@@ -334,8 +334,20 @@ def load_pretrained_model(model_path, model_base, model_name, load_8bit=False, l
                 config = AutoConfig.from_pretrained(model_base)
                 config_type = getattr(config, 'model_type', '')
                 
-                if 'llava' in config_type:
-                    # LLaVA 모델인 경우 적절한 클래스 사용
+                # Hugging Face LLaVA 모델 처리
+                if config_type == 'llava' or 'llava' in str(type(config)).lower():
+                    print(f"Detected Hugging Face LLaVA model: {config_type}")
+                    # Hugging Face LLaVA 모델을 우리 커스텀 Qwen 모델로 처리
+                    if 'qwen' in model_base.lower() or 'qwen' in model_name.lower():
+                        from llava.model.language_model.llava_qwen import LlavaQwenForCausalLM
+                        print("Loading as LlavaQwenForCausalLM...")
+                        model = LlavaQwenForCausalLM.from_pretrained(model_base, torch_dtype=torch.float16, low_cpu_mem_usage=True, device_map="auto", trust_remote_code=True)
+                    else:
+                        from llava.model.language_model.llava_llama import LlavaLlamaForCausalLM
+                        print("Loading as LlavaLlamaForCausalLM...")
+                        model = LlavaLlamaForCausalLM.from_pretrained(model_base, torch_dtype=torch.float16, low_cpu_mem_usage=True, device_map="auto", trust_remote_code=True)
+                elif 'llava' in config_type:
+                    # 커스텀 LLaVA 모델인 경우
                     if 'qwen' in config_type:
                         from llava.model.language_model.llava_qwen import LlavaQwenForCausalLM
                         model = LlavaQwenForCausalLM.from_pretrained(model_base, torch_dtype=torch.float16, low_cpu_mem_usage=True, device_map="auto", trust_remote_code=True)
